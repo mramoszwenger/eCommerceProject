@@ -1,4 +1,4 @@
-import { getServices, initializeServices } from '../services/service.js';
+import { getServices, initializeServices, areServicesInitialized } from '../services/service.js';
 
 const initChatSocket = (io) => {
     const mensajes = [];
@@ -26,32 +26,44 @@ const initChatSocket = (io) => {
 };
 
 const initProductsSocket = async (io) => {
-    const config = { limit: 5, page: 1, sort: 1 };
+    const options = { limit: 5, page: 1, sort: { createdAt: -1 } };
 
-    await initializeServices(); // Confirmar que los servicios estén inicializados
+    if (!areServicesInitialized()) {
+        console.log('Servicios no inicializados. Inicializando...');
+        await initializeServices();
+    }
+
     const { productService } = getServices();
 
     io.on('connection', (socket) => {
         console.log('Cliente conectado al socket');
 
-        // Envía la lista de productos al conectar
         socket.on('getProducts', async () => {
             try {
-                const result = await productService.getAllProducts(config);
-                socket.emit('products', result.docs); // Envía la lista de productos al cliente
+                console.log('Solicitando productos con opciones:', options);
+                const result = await productService.getAllProducts({}, options);
+                console.log('Productos obtenidos:', result);
+                if (result && result.docs) {
+                    socket.emit('products', result.docs);
+                } else {
+                    throw new Error('Resultado de productos inválido');
+                }
             } catch (error) {
                 console.error('Error al obtener productos:', error);
                 socket.emit('error', 'No se pudo obtener la lista de productos.');
             }
         });
 
-        // Maneja el evento de nuevo producto agregado
         socket.on('addProduct', async (data) => {
             try {
                 const product = await productService.createProduct(data);
                 if (product) {
-                    const result = await productService.getAllProducts(config);
-                    io.sockets.emit('products', result.docs); // Actualiza la lista de productos en todos los clientes
+                    const result = await productService.getAllProducts({}, options);
+                    if (result && result.docs) {
+                        io.sockets.emit('products', result.docs);
+                    } else {
+                        throw new Error('Resultado de productos inválido después de agregar');
+                    }
                 }
             } catch (error) {
                 console.error('Error al agregar producto:', error);

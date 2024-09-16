@@ -4,16 +4,18 @@ class ProductRepository {
     console.log('ProductRepository initialized with DAO:', productsDAO);
   }
 
-  getAllProducts = async (config) => {
-    console.log('Calling getAllProducts...');
+  getAllProducts = async (filters = {}, options = {}) => {
+    console.log('Calling getAllProducts in ProductRepository...');
+    console.log('Filters:', filters);
+    console.log('Options:', options);
     try {
-      const result = await this.productsDAO.getAllProducts(config);
-      return result; // Asegúrate de retornar el resultado
+        const result = await this.productsDAO.getAllProducts(filters, options);
+        return result;
     } catch (error) {
-      console.error('Error in getAllProducts:', error);
-      throw error; // Propaga el error para que el llamador pueda manejarlo
+        console.error('Error in ProductRepository.getAllProducts:', error);
+        throw error;
     }
-  };
+};
 
   getProductById = async pid => await this.productsDAO.getProductById({_id: pid});
 

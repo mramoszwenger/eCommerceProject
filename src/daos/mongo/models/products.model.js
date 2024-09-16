@@ -14,7 +14,7 @@ const productSchema = new Schema({
     },
     category: {
         type: String,
-        require: true
+        required: true
     },
     thumbnail: {
         type: String,
@@ -40,8 +40,12 @@ const productSchema = new Schema({
     owner: {
         type: Schema.Types.ObjectId,
         ref: 'User',
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
-});
+}, { timestamps: true });
 
 productSchema.plugin(mongoosePaginate)
 

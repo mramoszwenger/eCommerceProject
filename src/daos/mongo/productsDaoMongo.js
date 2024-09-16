@@ -13,16 +13,31 @@ class ProductManagerMongo {
         }
     }
 
-    getAllProducts = async (filters, options) => {
+    getAllProducts = async (filters = {}, options = {}) => {
+        console.log('Iniciando getAllProducts en productsDaoMongo');
+        console.log('Filtros:', JSON.stringify(filters));
+        console.log('Opciones:', JSON.stringify(options));
+    
+        if (typeof filters !== 'object' || typeof options !== 'object') {
+            console.error('Filtros u opciones inválidos');
+            throw new Error('Parámetros inválidos para getAllProducts');
+        }
+    
         try {
+            console.log('Intentando paginar productos...');
             const result = await this.productModel.paginate(filters, options);
+            console.log('Paginación completada');
+    
             if (!result?.docs) {
+                console.error('No se encontraron documentos en el resultado');
                 throw new Error('Error en los datos de productos');
             }
+    
+            console.log(`Se encontraron ${result.docs.length} productos`);
             return result;
         } catch (error) {
             console.error('Error al obtener los productos:', error);
-            return {};
+            throw error;
         }
     }
 

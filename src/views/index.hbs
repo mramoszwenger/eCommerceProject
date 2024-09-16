@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto eCommerce - Maximiliano Ramos Zwenger</title>
+</head>
+
+<body>
+    
+    <h1>Proyecto eCommerce</h1>
+
+    <h2>Lista de Productos</h2>
+
+    <ul id="product-list">
+        <!-- Aquí se mostrará la lista de productos disponibles en tiempo real -->
+    </ul>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Función para actualizar la lista de productos en tiempo real
+        function updateProductList(products) {
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+
+            products.forEach(function(product) {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<strong>${product.title}</strong> - ${product.description} - <em>$${product.price}</em>`;
+                productList.appendChild(listItem);
+            });
+        }
+
+        socket.on('products', function(products) {
+            updateProductList(products);
+        });
+
+        socket.emit('getProducts');
+
+        socket.on('newProductAdded', function() {
+            socket.emit('getProducts');
+        });
+    </script>
+
+</body>
+
+</html>

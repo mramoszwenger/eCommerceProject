@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Producto</title>
+</head>
+
+<body>
+    <h1>Agregar un Nuevo Producto</h1>
+
+    <form id="productForm">
+        <div>
+            <label for="title">Título:</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+        <div>
+            <label for="description">Descripción:</label>
+            <textarea id="description" name="description" required></textarea>
+        </div>
+        <div>
+            <label for="price">Precio:</label>
+            <input type="number" id="price" name="price" required>
+        </div>
+        <div>
+            <label for="stock">Stock:</label>
+            <input type="number" id="stock" name="stock" required>
+        </div>
+        <div>
+            <label for="code">Código del Producto:</label>
+            <input type="text" id="code" name="code" required>
+        </div>
+        <div>
+            <label for="thumbnail">URL de la imagen:</label>
+            <input type="url" id="thumbnail" name="thumbnail">
+        </div>
+        <button type="submit">Agregar Producto</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const form = document.getElementById('productForm');
+
+        // Escucha el evento de envío del formulario
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita el envío por defecto del formulario
+
+            // Recoge los valores del formulario
+            const newProduct = {
+                title: form.title.value,
+                description: form.description.value,
+                price: form.price.value,
+                stock: form.stock.value,
+                code: form.code.value,
+                thumbnail: form.thumbnail.value
+            };
+
+            // Enviar el producto al servidor para agregarlo a la base de datos
+            fetch('/api/products', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newProduct)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al agregar el producto');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Emite un evento para notificar a los clientes que hay un nuevo producto
+                socket.emit('newProduct');
+                alert('Producto agregado con éxito!');
+                form.reset(); // Resetea el formulario después de agregar el producto
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+
+</html>

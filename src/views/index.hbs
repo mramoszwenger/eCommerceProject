@@ -5,10 +5,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proyecto eCommerce - Maximiliano Ramos Zwenger</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            padding: 20px 0;
+            background-color: #777777;
+            color: white;
+            margin: 0;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 20px;
+        }
+
+        #product-list {
+            list-style-type: none;
+            padding: 0;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        #product-list li {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #product-list li strong {
+            display: block;
+            font-size: 18px;
+            color: #333;
+        }
+
+        #product-list li em {
+            color: #4CAF50;
+        }
+
+        /* Agregar estilos para un mensaje de error */
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 
 <body>
-    
     <h1>Proyecto eCommerce</h1>
 
     <h2>Lista de Productos</h2>
@@ -16,6 +73,8 @@
     <ul id="product-list">
         <!-- Aquí se mostrará la lista de productos disponibles en tiempo real -->
     </ul>
+
+    <div class="error-message" id="error-message"></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -41,6 +100,11 @@
 
         socket.on('newProductAdded', function() {
             socket.emit('getProducts');
+        });
+
+        socket.on('error', function(errorMessage) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = errorMessage;
         });
     </script>
 

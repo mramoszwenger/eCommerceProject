@@ -4,7 +4,9 @@ import { v4 as uuidv4 } from 'uuid';
 import Ticket from './models/tickets.model.js';
 
 class CartManager {
-    constructor() {}
+    constructor() {
+      this.cartsModel = cartsModel;
+    }
 
     getCarts = async () => {
         try {
@@ -25,15 +27,15 @@ class CartManager {
     }
 
     createCart = async () => {
-        try {
-            const cid = Math.floor(Math.random() * 1000); // Genera un ID aleatorio
-            const newCart = await cartsModel.create({ products: [] });
-            return newCart;
-        } catch (error) {
-            console.error('Error al crear el carrito:', error);
-            return null;
-        }
+      try {
+          const newCart = await cartsModel.create({ products: [] });
+          return newCart;
+      } catch (error) {
+          console.error('Error al crear el carrito:', error);
+          return null;
+      }
     }
+  
 
     addProductToCart = async (cid, product) => {
         try {

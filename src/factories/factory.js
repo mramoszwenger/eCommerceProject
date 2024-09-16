@@ -1,35 +1,50 @@
 import { PERSISTENCE } from "../config/config.js";
 
-export let ProductsDao;
-export let CartsDao;
-export let UsersDao;
+class DaoFactory {
+  constructor() {
+    this.ProductsDao = null;
+    this.CartsDao = null;
+    this.UsersDao = null;
+  }
 
-const initializeDaos = async () => {
+  async initializeDaos() {
     switch (PERSISTENCE) {
+      case "MEMORY": {
+        // Implementar DAOs en memoria.
+        break;
+      }
 
-        case "MEMORY":
-            // Implementar DAOs en memoria.
-            break;
+      case "FS": {
+        const { default: ProductDaoFS } = await import('../daos/fs/productsManagerFS.js');
+        this.ProductsDao = ProductDaoFS;
+        console.log('ProductsDao (FS):', this.ProductsDao);
+        break;
+      }
 
-        case "FS":
-            const { default: ProductDaoFS } = await import('../daos/fs/productsManagerFS.js');
-            ProductsDao = ProductDaoFS;
-            break;
+      default: {
+        // MONGO
+        const { connectDB } = await import("../config/config.js");
+        connectDB();
 
-        default:
-            // MONGO
-            const { connectDB } = await import("../config/config.js");
-            await connectDB();
+        const { default: ProductManagerMongo } = await import("../daos/mongo/productsDaoMongo.js");
+        const { default: CartManagerMongo } = await import("../daos/mongo/cartsDaoMongo.js");
+        const { default: UserManagerMongo } = await import("../daos/mongo/usersDaoMongo.js");
 
-            const { default: ProductManagerMongo } = await import("../daos/mongo/productsDaoMongo.js");
-            const { default: CartManagerMongo } = await import("../daos/mongo/cartsDaoMongo.js");
-            const { default: UserManagerMongo } = await import("../daos/mongo/usersDaoMongo.js");
-
-            ProductsDao = new ProductManagerMongo;
-            CartsDao = new CartManagerMongo;
-            UsersDao = new UserManagerMongo;
-            break;
+        this.ProductsDao = new ProductManagerMongo();
+        this.CartsDao = new CartManagerMongo();
+        this.UsersDao = new UserManagerMongo();
+        console.log('ProductsDao (Mongo):', this.ProductsDao);
+        console.log('CartsDao (Mongo):', this.CartsDao);
+        console.log('UsersDao (Mongo):', this.UsersDao);
+        break;
+      }
     }
-};
 
-export default initializeDaos;
+    console.log('PERSISTENCE:', PERSISTENCE);
+    return { ProductsDao: this.ProductsDao, CartsDao: this.CartsDao, UsersDao: this.UsersDao };
+  }
+}
+
+const daoFactory = new DaoFactory();
+
+export { daoFactory };

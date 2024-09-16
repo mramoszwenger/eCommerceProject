@@ -10,21 +10,87 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #e0e0e0; /* Gris claro */
         }
 
-        h1 {
-            text-align: center;
-            color: #333;
-            padding: 20px 0;
-            background-color: #777777;
+        header {
+            background-color: #2c3e50; /* Azul grisáceo oscuro */
             color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
             margin: 0;
+        }
+
+        .name-menu {
+            font-size: 24px;
+        }
+
+        .menu {
+            display: flex;
+            align-items: center;
+        }
+
+        .menu a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            margin-left: 10px;
+            background-color: #3498db; /* Azul brillante */
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .menu a:hover {
+            background-color: #2980b9; /* Azul más oscuro */
+        }
+
+        .cart-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .cart-button:hover {
+            color: #2980b9; /* Azul más oscuro */
+        }
+
+        .banner {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background-image: url('https://img.freepik.com/foto-gratis/fondo-azul-poligonal-abstracto-3d_1048-11983.jpg?t=st=1726510744~exp=1726514344~hmac=ce302fefd79adb5a491e6baaa7c910065be01ac9f5eb3409577e38579653c568&w=740');
+            background-size: cover;
+            background-position: top;
+            margin: 0;
+        }
+
+        .banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Overlay oscuro con transparencia */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 54px;
+            font-weight: bold;
+            text-align: center;
         }
 
         h2 {
             text-align: center;
-            color: #333;
+            color: #34495e; /* Gris azulado */
             margin-top: 20px;
         }
 
@@ -36,8 +102,8 @@
         }
 
         #product-list li {
-            background: #fff;
-            border: 1px solid #ddd;
+            background: #ffffff; /* Blanco */
+            border: 1px solid #bdc3c7; /* Gris claro */
             border-radius: 5px;
             margin: 10px 0;
             padding: 10px;
@@ -49,24 +115,46 @@
         #product-list li strong {
             display: block;
             font-size: 18px;
-            color: #333;
+            color: #2c3e50; /* Azul grisáceo oscuro */
         }
 
         #product-list li em {
-            color: #4CAF50;
+            color: #3498db; /* Azul brillante */
         }
 
-        /* Agregar estilos para un mensaje de error */
         .error-message {
-            color: red;
+            color: #e74c3c; /* Rojo */
             text-align: center;
             margin-top: 20px;
         }
+
+        footer {
+            background-color: #2c3e50; /* Azul grisáceo oscuro */
+            color: white;
+            text-align: center;
+            padding: 10px 20px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body>
-    <h1>Proyecto eCommerce</h1>
+    <header>
+        <h1 class="name-menu">errezeta Shop</h1>
+        <div class="menu">
+            <button class="cart-button"><i class="fas fa-shopping-cart"></i></button>
+            <a href="/login">Login</a>
+        </div>
+    </header>
+
+    <div class="banner">
+        <div class="banner-overlay">
+            Tecnología a tu Alcance
+        </div>
+    </div>
 
     <h2>Lista de Productos</h2>
 
@@ -75,6 +163,10 @@
     </ul>
 
     <div class="error-message" id="error-message"></div>
+
+    <footer>
+        &copy; 2024 Desarrollado por Maximiliano Ramos Zwenger
+    </footer>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -92,16 +184,22 @@
             });
         }
 
+        // Obtener la lista de productos cuando se conecte el cliente
+        socket.on('connect', () => {
+            socket.emit('getProducts');
+        });
+
+        // Actualiza la lista de productos cuando se recibe el evento 'products'
         socket.on('products', function(products) {
             updateProductList(products);
         });
 
-        socket.emit('getProducts');
-
+        // Actualiza la lista de productos cuando se agrega un nuevo producto
         socket.on('newProductAdded', function() {
             socket.emit('getProducts');
         });
 
+        // Muestra mensajes de error si ocurren
         socket.on('error', function(errorMessage) {
             const errorDiv = document.getElementById('error-message');
             errorDiv.textContent = errorMessage;

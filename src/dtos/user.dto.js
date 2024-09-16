@@ -1,9 +1,7 @@
-class UserDTO {
-    constructor(newUser) {
-      this.id = newUser._id;
-      this.name = newUser.name;
-      this.email = newUser.email;
-    }
-  }
-  
-  export default UserDTO;
+const createUserDTO = (newUser) => ({
+  id: newUser._id,
+  name: newUser.name,
+  email: newUser.email
+});
+
+export default createUserDTO;

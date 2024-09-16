@@ -33,17 +33,13 @@ const productSchema = new Schema({
         required: true,
         unique: true
     },
-    isActive: {
+    status: {
         type: Boolean,
         default: true
     },
     owner: {
         type: Schema.Types.ObjectId,
         ref: 'User',
-    },
-    atCreate: {
-        type: Date,
-        default: new Date()
     }
 });
 

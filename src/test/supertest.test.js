@@ -1,6 +1,5 @@
 import * as chai from 'chai';
 import supertest from 'supertest';
-import { generateToken } from '../config/index.js';
 
 const expect = chai.expect;
 const requester = supertest('http://localhost:8080');

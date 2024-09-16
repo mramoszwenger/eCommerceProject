@@ -1,17 +1,20 @@
 import ProductManagerMongo from '../daos/mongo/productsDaoMongo.js';
-
 import {} from '../daos/mongo/models/products.model.js';
-import { userModel } from '../daos/mongo/models/users.model.js';
-
-import { productService } from '../services/service.js';
+import { getServices, initializeServices } from '../services/service.js';
 
 const productManager = new ProductManagerMongo();
 
-class productController {
-
+class ProductController {
   constructor() {
     console.log('ProductController instantiated');
-    this.service = productService
+    this.service = null;
+    this.initialize();
+  }
+
+  async initialize() {
+    await initializeServices();
+    const services = getServices();
+    this.service = services.productService;
   }
 
   getAllProducts = async (request, response) => {
@@ -25,14 +28,14 @@ class productController {
         sort: sort ? { price: sort === 'asc' ? 1 : -1 } : {},
       };
 
-      const result = await productManager.getProducts(filters, options);
-      if (!result || !result.docs) {
+      const result = await productManager.getAllProducts(filters, options);
+      if (!result?.docs) {
         return response.status(500).send('Error en los datos de productos');
       }
 
-      const { docs, totalDocs, totalPages, hasPrevPage, hasNextPage, prevPage, nextPage } = result;
+      const { docs, totalPages, hasPrevPage, hasNextPage, prevPage, nextPage } = result;
 
-      response.json({
+      response.render('index', {
         status: 'success',
         payload: docs,
         totalPages,
@@ -51,7 +54,7 @@ class productController {
   }
 
   getProductById = async (request, response) => {
-    const pid = Number(request.params.pid);
+    const pid = request.params.pid;
     try {
       const product = await productManager.getProductById(pid);
       if (!product) {
@@ -65,30 +68,46 @@ class productController {
 
   addProduct = async (request, response) => {
     try {
-      const { email } = request.user;
-      console.log('User email:', email);
+      const { title, description, category, price, stock, code } = request.body;
 
-      const user = await userModel.findOne({ email });
-      console.log('Found user:', user);
-
-      if (!user || (user.role !== 'premium' && user.role !== 'admin')) {
-        console.log('Usurio no tiene permisos');
-        return response.status(403).send('No tienes permiso para agregar productos.');
-      }      
-
-      const product = { ...request.body, owner: email };
-      console.log('Product to add:', product);
-
-      const newProduct = await productManager.addProduct(product);
-      if (!newProduct) {
-        console.log('Failed to add product');
-        return response.status(400).send('Todos los campos son obligatorios.');
+      if (!title || !description || !category || !price || isNaN(price) || !stock || isNaN(stock) || !code) {
+        throw CustomError.createError({
+          name: "Product creation error",
+          cause: generateProductErrorInfo({ title, description, price, thumbnail, code, stock, category }),
+          message: "Error Trying to create Product",
+          code: EErrors.INVALID_TYPES_ERROR
+        });
       }
-      console.log('Product added:', newProduct);
-      response.status(201).send(product);
+
+      const newProduct = {
+        title,
+        description,
+        category,
+        price,
+        stock,
+        code,
+        thumbnail: req.file ? `/static/products/${req.file.filename}` : '/static/products/default.png',
+      };
+
+      const userId = request.user._id;
+      const userRole = request.user.role;
+
+      if (!userId && userRole === 'admin') {
+        const result = await this.service.addProduct(newProduct);
+        response.status(201).send({ status: "Success: Producto agregado", payload: result });
+        return;
+      }
+
+      const user = await userService.getUserById(userId);
+      if (user) newProduct.owner = user._id;
+
+      const result = await this.service.addProduct(newProduct);
+      request.logger.info(`Producto agregado: ${newProduct.title}`);
+
+      response.status(201).send({ status: "Success: Producto agregado", payload: result });
     } catch (error) {
-      console.error('Error en addProduct:', error);
-      response.status(500).send('Error al agregar el producto');
+      request.logger.error(`Error al agregar el producto: ${error.message}`);
+      response.status(400).send({ error: 'Error al agregar el producto', details: error.message });
     }
   }
 
@@ -101,11 +120,10 @@ class productController {
         return response.status(404).send('Producto no encontrado');
       }
 
-      // Verificar que los usuarios 'premium' solo pueden actualizar sus propios productos
       if (role === 'premium' && product.owner !== email) {
         return response.status(403).send('No tienes permiso para actualizar este producto');
       }
-      
+
       const updatedProduct = await productManager.updateProduct(pid, request.body);
       if (!updatedProduct) {
         return response.status(404).send('Producto no encontrado');
@@ -126,7 +144,6 @@ class productController {
         return response.status(404).send('Producto no encontrado');
       }
 
-      // Verificar que los usuarios 'premium' solo pueden eliminar sus propios productos
       if (role === 'premium' && product.owner !== email) {
         return response.status(403).send('No tienes permiso para eliminar este producto');
       }
@@ -140,6 +157,6 @@ class productController {
       response.status(500).send('Error al eliminar el producto');
     }
   }
-};
+}
 
-export default new productController();
+export default new ProductController();

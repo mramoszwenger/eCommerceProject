@@ -7,35 +7,16 @@ class ProductManagerMongo {
 
     addProduct = async (product) => {
         try {
-            // Validar que todos los campos sean completados
-            if (!product.title || !product.description || !product.category || !product.thumbnail || !product.price || !product.stock || !product.code) {
-                throw new Error('Todos los campos son obligatorios.');
-            }
-
-            // Asegurarse de que el usuario tenga el rol owner
-            if (!product.owner) {
-                product.owner = 'admin';
-            }
-
-            // Validar que el código del producto no exista en otro producto
-            const existingProduct = await this.productModel.findOne({ code: product.code });
-            if (existingProduct) {
-                throw new Error('El código del producto ya existe.');
-            }
-
-            const newProduct = new this.productModel(product);
-            await newProduct.save();
-            return newProduct;
+            return await productModel.create(product)
         } catch (error) {
-            console.error('Error al agregar el producto:', error);
-            throw error;
+            console.error(error)
         }
     }
 
-    getProducts = async (filters, options) => {
+    getAllProducts = async (filters, options) => {
         try {
             const result = await this.productModel.paginate(filters, options);
-            if (!result || !result.docs) {
+            if (!result?.docs) {
                 throw new Error('Error en los datos de productos');
             }
             return result;

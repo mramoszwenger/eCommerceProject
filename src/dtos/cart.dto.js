@@ -1,8 +1,6 @@
-class CartDTO {
-    constructor(newCart) {
-      this.id = newCart._id;
-      this.items = newCart.items;
-    }
-  }
-  
-  export default CartDTO;
+const createCartDTO = (newCart) => ({
+  id: newCart._id,
+  items: newCart.items
+});
+
+export default createCartDTO;

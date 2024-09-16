@@ -6,14 +6,12 @@ import nodemailer from 'nodemailer';
 
 const userManager = new UserManagerMongo();
 
-class userController {
+class UserController {
   registerUser = async (request, response) => {
     const { first_name, last_name, age, email, password } = request.body;
- //   console.log('Request body:', request.body);
 
     try {
       const user = await userManager.createUser({ first_name, last_name, age, email, password });
-//      console.log('User created:', user);
       response.json({ status: 'success', message: 'Usuario registrado', user });
     } catch (error) {
       console.error('Error al registrar usuario:', error);
@@ -301,4 +299,4 @@ class userController {
  
 };
 
-export default new userController();
+export default new UserController();

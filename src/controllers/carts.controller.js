@@ -6,7 +6,7 @@ import Ticket from '../daos/mongo/models/tickets.model.js';
 const cartManager = new CartManager();
 const productManager = new ProductManager();
 
-class cartController {
+class CartController {
   getCart = async (request, response) => {
     try {
       const { cid } = request.params;
@@ -144,4 +144,4 @@ class cartController {
   }
 };
 
-export default new cartController();
+export default new CartController();

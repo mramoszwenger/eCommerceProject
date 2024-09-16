@@ -4,20 +4,16 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import UserManagerMongo from '../daos/mongo/usersDaoMongo.js';
 import { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, JWT_SECRET } from './config.js';
-import { createHash, isValidPassword } from '../utils/bcrypt.js';
 
 const userService = new UserManagerMongo();
 
 const JWTStrategy = Strategy;
 const ExtractJWT  = ExtractJwt;
 
-// console.log('GITHUB_CLIENT_ID:', GITHUB_CLIENT_ID);
-// console.log('GITHUB_CLIENT_SECRET:', GITHUB_CLIENT_SECRET);
-
 export const initializePassport = () => {
   const cookieExtractor = request => {
     let token = null
-    if (request && request.cookies) {
+    if (request?.cookies) {
         token = request.cookies['token']
     }
     return token

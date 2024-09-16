@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import passport from 'passport';
 import userController from '../../controllers/users.controller.js';
-// import authMiddleware from '../../middlewares/auth.middleware.js';
 import { passportCall } from '../../utils/passportCall.js';
 import { authorization } from '../../utils/authorizationJwt.js';
 import { generateToken } from '../../utils/jwt.js';

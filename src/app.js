@@ -15,48 +15,24 @@ import swaggerUiExpress from 'swagger-ui-express';
 import handlebars from 'express-handlebars';
 
 import { Server } from 'socket.io';
-import { PORT, connectDB } from './config/config.js';
+import { initChatSocket, initProductsSocket } from './utils/socket.js';
+import { PORT } from './config/config.js';
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import cors from 'cors';
 import { initializePassport } from './config/passport.config.js';
-import initializeDaos from './factories/factory.js';
-
-import productController from './controllers/products.controller.js';
+import { daoFactory } from './factories/factory.js';  // Importar la instancia de DaoFactory
 
 const app = express();
 
-const initializeSocket = (socketServer) => {
-  socketServer.on('connection', (socket) => {
-    console.log('Cliente conectado');
-
-    // Envio lista de productos en tiempo real
-    socket.on('getProducts', async () => {
-      try {
-        const products = await productController.getAllProducts();
-        socket.emit('products', products);
-      } catch (error) {
-        console.error('Error obteniendo productos:', error);
-        socket.emit('error', 'No se pudieron obtener los productos');
-      }
-    });
-
-    // Notificar cuando se agrega un nuevo producto
-    socket.on('newProductAdded', async () => {
-      try {
-        const products = await productController.getAllProducts();
-        socketServer.emit('products', products);
-      } catch (error) {
-        console.error('Error actualizando productos:', error);
-      }
-    });
-  });
-};
-
 const startServer = async () => {
   try {
-    await initializeDaos();
-    console.log('Conexión inicializada correctamente');
+    const { ProductsDao, CartsDao, UsersDao } = await daoFactory.initializeDaos(); // Usar la instancia para inicializar DAOs
+
+    // Verifica que los DAOs se hayan inicializado correctamente
+    console.log('ProductsDao:', ProductsDao);
+    console.log('CartsDao:', CartsDao);
+    console.log('UsersDao:', UsersDao);
 
     const httpServer = app.listen(PORT || 8080, () => {
       console.log(`Server escuchando en el puerto ${PORT}`);
@@ -64,7 +40,8 @@ const startServer = async () => {
 
     // Iniciar socket server
     const socketServer = new Server(httpServer);
-    initializeSocket(socketServer);
+    initChatSocket(socketServer);  // Inicializar chat socket
+    initProductsSocket(socketServer);  // Inicializar productos socket
 
   } catch (error) {
     console.error('Error al iniciar la aplicación:', error);
@@ -119,7 +96,6 @@ app.engine('hbs', handlebars.engine({ extname: '.hbs' }));
 // Dirección de las vistas (plantillas)
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, '../views'));
-// console.log('Current __dirname:', __dirname);
 
 // Rutas
 app.use('/', viewsRouter);

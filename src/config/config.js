@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
 import { connect } from 'mongoose';
-import jwt from 'jsonwebtoken';
 
 dotenv.config(); // Carga variables desde .env
 

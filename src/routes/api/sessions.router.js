@@ -1,71 +1,38 @@
 import { Router } from 'express';
 import passport from 'passport';
-import userController from '../../controllers/users.controller.js';
-import { passportCall } from '../../utils/passportCall.js';
+import SessionsController from '../../controllers/sessions.controller.js';
 import { authorization } from '../../utils/authorizationJwt.js';
-import { generateToken } from '../../utils/jwt.js';
+import { isAuthenticated } from '../../middlewares/auth.middleware.js';
 
 const sessionsRouter = Router();
 
-// registro del usuario
-sessionsRouter.post('/register', userController.registerUser);
+// Registro del usuario
+sessionsRouter.post('/register', SessionsController.registerUser);
 
-// inicio de sesión
+// Inicio de sesión
+sessionsRouter.post('/login', SessionsController.loginUser);
 
-sessionsRouter.post('/login', (request, response, next) => {
-    passport.authenticate('login', (error, user, info) => {
-      if (error) {
-        return next(error);
-      }
-      if (!user) {
-        return response.status(401).json({ status: 'error', message: 'Credenciales incorrectas' });
-      }
-  
-      // Login exitoso, generar el token JWT
-      request.logIn(user, (error) => {
-        if (error) {
-          return next(error);
-        }
-  
-        const token = generateToken({ id: user._id, role: user.role });
-        console.log('JWT generado:', token);
-  
-        return response.json({ status: 'success', message: 'Login exitoso', token });
-      });
-    })(request, response, next);
-  });
+// Login con GitHub
+sessionsRouter.get('/github', passport.authenticate('github', {scope: 'user:email'}));
 
-// login con github
-sessionsRouter.get('/github', passport.authenticate('github', {scope: 'user:email'}), async (request, response) => {})
+sessionsRouter.get('/githubcallback', passport.authenticate('github', {failureRedirect: '/login'}), SessionsController.githubCallback);
 
-sessionsRouter.get('/githubcallback', passport.authenticate('github', {failureRedirect: '/login'}), (request,response) => {
-    request.session.user = request.user
-    response.redirect('/')
-})
+// Ruta protegida de ejemplo
+sessionsRouter.get('/current', isAuthenticated, authorization('admin'), SessionsController.getCurrentUser);
 
-sessionsRouter.get('/current', passportCall('jwt'), authorization('admin'), (request, response) => {
-    logger.info(request.user)
-    response.send('datos sensibles')
-})
+// Ruta para solicitar el enlace de recuperación de contraseña
+sessionsRouter.post('/forgot-password', SessionsController.sendPasswordResetEmail);
 
-// ruta para solicitar el enlace de recuperación de contraseña
-sessionsRouter.post('/forgot-password', userController.sendPasswordResetEmail);
+// Ruta para formulario de reestablecer contraseña
+sessionsRouter.get('/reset-password/:token', SessionsController.renderResetPasswordForm);
 
-// ruta para formulario de reestablecer contraseña
-sessionsRouter.get('/reset-password/:token', (request, response) => {
-    const { token } = request.params;
-    response.render('reset-password', { token });
-});
+// Ruta para procesar el formulario para reestablecer contraseña
+sessionsRouter.post('/reset-password/:token', SessionsController.resetPassword);
 
-// ruta para procesar el formulario para reestablecer contraseña
-sessionsRouter.post('/reset-password', userController.resetPassword);
+// Cerrar sesión
+sessionsRouter.post('/logout', isAuthenticated, SessionsController.logoutUser);
 
-// cerrar sesión
-sessionsRouter.get('/logout', (request, response) => {
-    request.logout(error => {
-        if(error) return response.send({status: 'error', error: error})
-        response.redirect('/login')
-    })
-})
+// Verificar sesión
+sessionsRouter.get('/check', isAuthenticated, SessionsController.checkSession);
 
 export default sessionsRouter;

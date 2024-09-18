@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import authMiddleware from '../middlewares/auth.middleware.js';
+import productController from '../controllers/products.controller.js';
 
 const router = Router();
 
@@ -19,21 +20,25 @@ router.get('/forgot-password', (request, response) => {
   response.render('forgot-password.hbs');
 });
 
-router.get('/products', authMiddleware, (request, response) => {
+router.get('/products', (request, response) => {
   response.render('products');
+});
+
+router.get('/products/:pid', (request, response) => {
+  response.render('product');
 });
 
 router.get('/chat', (request, response) => {
   const { socketServer } = request
 
   socketServer.on('connection', socket => {
-      logger.info('nuevo cliete conectado')
+      logger.info('nuevo cliente conectado')
    
       const messages = []
     
       socket.on('mensaje_cliente', data => {
           logger.info(data)
-          messages.push({id: socket.id, messge: data})       
+          messages.push({id: socket.id, message: data})       
           socketServer.emit('messages_server', messages)
       })
   })

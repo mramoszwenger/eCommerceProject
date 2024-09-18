@@ -10,128 +10,133 @@ class CartManager {
 
     getCarts = async () => {
         try {
-            return await cartsModel.find({});
+            return await this.cartsModel.find({}).lean();
         } catch (error) {
             console.error('Error al obtener los carritos:', error);
-            return [];
+            throw error;
         }
     }
 
     getCart = async (cid) => {
         try {
-            return await cartsModel.findOne({ _id: cid });
+            const cart = await this.cartsModel.findById(cid).populate('products.product').lean();
+            if (!cart) {
+                console.log('Carrito no encontrado:', cid);
+                return null;
+            }
+            return cart;
         } catch (error) {
             console.error('Error al obtener el carrito:', error);
-            return null;
+            throw error;
         }
     }
 
     createCart = async () => {
       try {
-          const newCart = await cartsModel.create({ products: [] });
-          return newCart;
+          const newCart = await this.cartsModel.create({ products: [] });
+          return newCart.toObject();
       } catch (error) {
           console.error('Error al crear el carrito:', error);
-          return null;
+          throw error;
       }
     }
   
 
-    addProductToCart = async (cid, product) => {
+    addProductToCart = async (cid, productData) => {
         try {
-            const cart = await this.getCart(cid);
+            const cart = await this.cartsModel.findById(cid);
             if (!cart) {
-                console.error('El carrito no existe');
+                console.log('Carrito no encontrado:', cid);
                 return null;
             }
-            const existingProductIndex = cart.products.findIndex(item => item.product.equals(product.product));
+            const existingProductIndex = cart.products.findIndex(item => item.product.toString() === productData.product);
             if (existingProductIndex !== -1) {
-                cart.products[existingProductIndex].quantity += product.quantity;
+                cart.products[existingProductIndex].quantity += productData.quantity;
             } else {
-                cart.products.push(product);
+                cart.products.push(productData);
             }
             await cart.save();
-            return cart;
+            return cart.toObject();
         } catch (error) {
             console.error('Error al agregar producto al carrito:', error);
-            return null;
+            throw error;
         }
     }
 
     removeProductFromCart = async (cid, pid) => {
         try {
-          const cart = await this.getCart(cid);
+          const cart = await this.cartsModel.findById(cid);
           if (!cart) {
-            console.error('El carrito no existe');
+            console.log('Carrito no encontrado:', cid);
             return null;
           }
-          cart.products = cart.products.filter(item => !item.product.equals(pid));
+          cart.products = cart.products.filter(item => item.product.toString() !== pid);
           await cart.save();
-          return cart;
+          return cart.toObject();
         } catch (error) {
           console.error('Error al eliminar producto del carrito:', error);
-          return null;
+          throw error;
         }
       }
     
       updateCart = async (cid, products) => {
         try {
-          const cart = await this.getCart(cid);
+          const cart = await this.cartsModel.findById(cid);
           if (!cart) {
-            console.error('El carrito no existe');
+            console.log('Carrito no encontrado:', cid);
             return null;
           }
           cart.products = products;
           await cart.save();
-          return cart;
+          return cart.toObject();
         } catch (error) {
           console.error('Error al actualizar el carrito:', error);
-          return null;
+          throw error;
         }
       }
     
       updateProductQuantity = async (cid, pid, quantity) => {
         try {
-          const cart = await this.getCart(cid);
+          const cart = await this.cartsModel.findById(cid);
           if (!cart) {
-            console.error('El carrito no existe');
+            console.log('Carrito no encontrado:', cid);
             return null;
           }
-          const product = cart.products.find(item => item.product.equals(pid));
-          if (!product) {
-            console.error('El producto no existe en el carrito');
+          const productIndex = cart.products.findIndex(item => item.product.toString() === pid);
+          if (productIndex === -1) {
+            console.log('Producto no encontrado en el carrito:', pid);
             return null;
           }
-          product.quantity = quantity;
+          cart.products[productIndex].quantity = quantity;
           await cart.save();
-          return cart;
+          return cart.toObject();
         } catch (error) {
           console.error('Error al actualizar la cantidad del producto en el carrito:', error);
-          return null;
+          throw error;
         }
       }
     
       clearCart = async (cid) => {
         try {
-          const cart = await this.getCart(cid);
+          const cart = await this.cartsModel.findById(cid);
           if (!cart) {
-            console.error('El carrito no existe');
+            console.log('Carrito no encontrado:', cid);
             return null;
           }
           cart.products = [];
           await cart.save();
-          return cart;
+          return cart.toObject();
         } catch (error) {
           console.error('Error al vaciar el carrito:', error);
-          return null;
+          throw error;
         }
       }
 
       purchaseCart = async (cid, purchaserEmail) => {
         try {
-            const cart = await this.getCart(cid);
+            const cart = await this.cartsModel.findById(cid).populate('products.product');
             if (!cart) {
-                console.error('Carrito no encontrado');
+                console.log('Carrito no encontrado:', cid);
                 return null;
             }
 
@@ -140,37 +145,42 @@ class CartManager {
             const purchasedProducts = [];
 
             for (const item of cart.products) {
-                const product = await productModel.findById(item.product);
+                const product = item.product;
                 if (product.stock >= item.quantity) {
                     product.stock -= item.quantity;
                     totalAmount += product.price * item.quantity;
                     purchasedProducts.push(item);
                     await product.save();
                 } else {
-                    failedProducts.push(item.product);
+                    failedProducts.push(item.product._id);
                 }
             }
 
+            let ticket = null;
             if (purchasedProducts.length > 0) {
-                const ticket = new Ticket({
+                ticket = await Ticket.create({
                     code: uuidv4(),
                     purchase_datetime: new Date(),
                     amount: totalAmount,
                     purchaser: purchaserEmail
                 });
-                await ticket.save();
             }
 
-            cart.products = failedProducts.map(productId => cart.products.find(item => item.product.equals(productId)));
+            cart.products = cart.products.filter(item => failedProducts.includes(item.product._id));
             await cart.save();
 
             return {
-                message: 'Compra completada',
-                failedProducts
+                success: purchasedProducts.length > 0,
+                ticket: ticket ? ticket.toObject() : null,
+                purchasedProducts: purchasedProducts.map(item => ({
+                    product: item.product._id,
+                    quantity: item.quantity
+                })),
+                failedProducts: failedProducts
             };
         } catch (error) {
             console.error('Error al finalizar la compra:', error);
-            return null;
+            throw error;
         }
     }
 }

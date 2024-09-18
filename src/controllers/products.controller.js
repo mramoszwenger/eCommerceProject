@@ -12,9 +12,14 @@ class ProductController {
   }
 
   async initialize() {
-    await initializeServices();
-    const services = getServices();
-    this.service = services.productService;
+    try {
+      await initializeServices();
+      const services = getServices();
+      this.service = services.productService;
+      console.log('ProductController initialized with service:', this.service);
+    } catch (error) {
+      console.error('Error initializing ProductController:', error);
+    }
   }
 
   getAllProducts = async (request, response) => {
@@ -68,51 +73,49 @@ class ProductController {
 
   addProduct = async (request, response) => {
     try {
+      console.log('Iniciando addProduct en el controlador');
+      console.log('Usuario autenticado:', request.user);
+      console.log('Datos del producto recibidos:', request.body);
+
       const { title, description, category, price, stock, code } = request.body;
 
       if (!title || !description || !category || !price || isNaN(price) || !stock || isNaN(stock) || !code) {
-        throw CustomError.createError({
-          name: "Product creation error",
-          cause: generateProductErrorInfo({ title, description, price, thumbnail, code, stock, category }),
-          message: "Error Trying to create Product",
-          code: EErrors.INVALID_TYPES_ERROR
-        });
+        return response.status(400).json({ error: 'Datos del producto inválidos o incompletos' });
       }
 
       const newProduct = {
         title,
         description,
         category,
-        price,
-        stock,
+        price: Number(price),
+        stock: Number(stock),
         code,
-        thumbnail: req.file ? `/static/products/${req.file.filename}` : '/static/products/default.png',
+        thumbnail: request.file ? `/static/products/${request.file.filename}` : '/static/products/default.png',
       };
 
       const userId = request.user._id;
       const userRole = request.user.role;
 
-      if (!userId && userRole === 'admin') {
-        const result = await this.service.addProduct(newProduct);
-        response.status(201).send({ status: "Success: Producto agregado", payload: result });
-        return;
+      console.log('ID de usuario:', userId);
+      console.log('Rol de usuario:', userRole);
+
+      if (userRole !== 'admin' && userRole !== 'premium') {
+        return response.status(403).json({ error: 'No tienes permisos para crear productos' });
       }
 
-      const user = await userService.getUserById(userId);
-      if (user) newProduct.owner = user._id;
-
+      newProduct.owner = userId;
       const result = await this.service.addProduct(newProduct);
-      request.logger.info(`Producto agregado: ${newProduct.title}`);
+      console.log('Producto creado:', result);
+      response.status(201).json({ status: "Success", message: "Producto agregado", payload: result });
 
-      response.status(201).send({ status: "Success: Producto agregado", payload: result });
     } catch (error) {
-      request.logger.error(`Error al agregar el producto: ${error.message}`);
-      response.status(400).send({ error: 'Error al agregar el producto', details: error.message });
+      console.error('Error al agregar el producto:', error);
+      response.status(500).json({ error: 'Error al agregar el producto', message: error.message });
     }
   }
 
   updateProduct = async (request, response) => {
-    const pid = Number(request.params.pid);
+    const pid = request.params.pid;
     try {
       const { email, role } = request.user;
       const product = await productManager.getProductById(pid);
@@ -130,12 +133,13 @@ class ProductController {
       }
       response.send(updatedProduct);
     } catch (error) {
-      response.status(500).send('Error al actualizar el producto');
+      console.error('Error al actualizar el producto:', error);
+      response.status(500).json({ error: 'Error al actualizar el producto', message: error.message });
     }
   }
 
   deleteProduct = async (request, response) => {
-    const pid = Number(request.params.pid);
+    const pid = request.params.pid;
     try {
       const { email, role } = request.user;
       const product = await productManager.getProductById(pid);
@@ -154,7 +158,40 @@ class ProductController {
       }
       response.send(deletedProduct);
     } catch (error) {
-      response.status(500).send('Error al eliminar el producto');
+      console.error('Error al eliminar el producto:', error);
+      response.status(500).json({ error: 'Error al eliminar el producto', message: error.message });
+    }
+  }
+
+  renderAddProductForm = async (req, res) => {
+    try {
+      res.render('products/add', {
+        title: 'Añadir Nuevo Producto',
+        user: req.user // Asumiendo que tienes información del usuario en req.user
+      });
+    } catch (error) {
+      console.error('Error al renderizar el formulario de añadir producto:', error);
+      res.status(500).render('error', { message: 'Error al cargar el formulario' });
+    }
+  }
+
+  renderEditProductForm = async (req, res) => {
+    try {
+      const { pid } = req.params;
+      const product = await productService.getProductById(pid);
+      
+      if (!product) {
+        return res.status(404).render('error', { message: 'Producto no encontrado' });
+      }
+
+      res.render('products/edit', {
+        title: 'Editar Producto',
+        product,
+        user: req.user
+      });
+    } catch (error) {
+      console.error('Error al renderizar el formulario de editar producto:', error);
+      res.status(500).render('error', { message: 'Error al cargar el formulario' });
     }
   }
 }

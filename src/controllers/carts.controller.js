@@ -7,102 +7,124 @@ const cartManager = new CartManager();
 const productManager = new ProductManager();
 
 class CartController {
-  getCart = async (request, response) => {
+  getCart = async (req, res) => {
     try {
-      const { cid } = request.params;
+      const { cid } = req.params;
       const cart = await cartManager.getCart(cid);
       if (!cart) {
-        return response.status(404).send('Carrito no encontrado');
+        return res.status(404).json({ status: 'error', message: 'Carrito no encontrado' });
       }
-      response.json(cart);
+      res.json({ status: 'success', payload: cart });
     } catch (error) {
-      response.status(500).send('Error al obtener el carrito');
+      console.error('Error al obtener el carrito:', error);
+      res.status(500).json({ status: 'error', message: 'Error al obtener el carrito' });
     }
   }
 
-  createCart = async (request, response) => {
+  createCart = async (req, res) => {
     try {
       const newCart = await cartManager.createCart();
-      response.json(newCart);
+      res.status(201).json({ status: 'success', payload: newCart });
     } catch (error) {
-      response.status(500).send('Error al crear el carrito');
+      console.error('Error al crear el carrito:', error);
+      res.status(500).json({ status: 'error', message: 'Error al crear el carrito' });
     }
   }
 
-  addProductToCart = async (request, response) => {
+  addProductToCart = async (req, res) => {
     try {
-      const { cid, pid } = request.params;
-      const { quantity } = request.body;
-      const cart = await cartManager.addProductToCart(cid, { product: pid, quantity: quantity || 1 });
-      if (!cart) {
-        return response.status(404).send('Carrito no encontrado');
+      const { cid, pid } = req.params;
+      const { quantity } = req.body;
+      
+      if (!quantity || quantity < 1) {
+        return res.status(400).json({ status: 'error', message: 'Cantidad inválida' });
       }
-      response.json(cart);
+
+      const cart = await cartManager.addProductToCart(cid, { product: pid, quantity });
+      if (!cart) {
+        return res.status(404).json({ status: 'error', message: 'Carrito no encontrado' });
+      }
+      res.json({ status: 'success', payload: cart });
     } catch (error) {
-      response.status(500).send('Error al agregar producto al carrito');
+      console.error('Error al agregar producto al carrito:', error);
+      res.status(500).json({ status: 'error', message: 'Error al agregar producto al carrito' });
     }
   }
 
-  removeProductFromCart = async (request, response) => {
+  removeProductFromCart = async (req, res) => {
     try {
-      const { cid, pid } = request.params;
+      const { cid, pid } = req.params;
       const updatedCart = await cartManager.removeProduct(cid, pid);
       if (!updatedCart) {
-        return response.status(404).send('Carrito no encontrado');
+        return res.status(404).json({ status: 'error', message: 'Carrito no encontrado' });
       }
-      response.json(cart);
+      res.json({ status: 'success', payload: updatedCart });
     } catch (error) {
-      response.status(500).send('Error al eliminar el producto del carrito');
+      console.error('Error al eliminar el producto del carrito:', error);
+      res.status(500).json({ status: 'error', message: 'Error al eliminar el producto del carrito' });
     }
   }
 
-  updateCart = async (request, response) => {
+  updateCart = async (req, res) => {
     try {
-      const { cid } = request.params;
-      const { products } = request.body;
+      const { cid } = req.params;
+      const { products } = req.body;
+      
+      if (!Array.isArray(products)) {
+        return res.status(400).json({ status: 'error', message: 'Formato de productos inválido' });
+      }
+
       const updatedCart = await cartManager.updateCart(cid, products);
       if (!updatedCart) {
-        return response.status(404).send('Carrito no encontrado');
+        return res.status(404).json({ status: 'error', message: 'Carrito no encontrado' });
       }
-      response.json(updatedCart);
+      res.json({ status: 'success', payload: updatedCart });
     } catch (error) {
-      response.status(500).send('Error al actualizar el carrito');
+      console.error('Error al actualizar el carrito:', error);
+      res.status(500).json({ status: 'error', message: 'Error al actualizar el carrito' });
     }
   }
 
-  updateProductQuantity = async (request, response) => {
+  updateProductQuantity = async (req, res) => {
     try {
-      const { cid, pid } = request.params;
-      const { quantity } = request.body;
+      const { cid, pid } = req.params;
+      const { quantity } = req.body;
+      
+      if (!quantity || quantity < 1) {
+        return res.status(400).json({ status: 'error', message: 'Cantidad inválida' });
+      }
+
       const updatedCart = await cartManager.updateProductQuantity(cid, pid, quantity);
       if (!updatedCart) {
-        return response.status(404).send('Carrito no encontrado');
+        return res.status(404).json({ status: 'error', message: 'Carrito no encontrado' });
       }
-      response.json(updatedCart);
+      res.json({ status: 'success', payload: updatedCart });
     } catch (error) {
-      response.status(500).send('Error al actualizar la cantidad del producto en el carrito');
+      console.error('Error al actualizar la cantidad del producto:', error);
+      res.status(500).json({ status: 'error', message: 'Error al actualizar la cantidad del producto' });
     }
   }
 
-  clearCart = async (request, response) => {
+  clearCart = async (req, res) => {
     try {
-      const { cid } = request.params;
+      const { cid } = req.params;
       const clearedCart = await cartManager.clearAllProducts(cid);
       if (!clearedCart) {
-        return response.status(404).send('Carrito no encontrado');
+        return res.status(404).json({ status: 'error', message: 'Carrito no encontrado' });
       }
-      response.json(clearedCart);
+      res.json({ status: 'success', payload: clearedCart });
     } catch (error) {
-      response.status(500).send('Error al vaciar el carrito');
+      console.error('Error al vaciar el carrito:', error);
+      res.status(500).json({ status: 'error', message: 'Error al vaciar el carrito' });
     }
   }
 
-  purchaseCart = async (request, response) => {
+  purchaseCart = async (req, res) => {
     try {
-      const { cid } = request.params;
+      const { cid } = req.params;
       const cart = await cartManager.getCart(cid);
       if (!cart) {
-        return response.status(404).send('Carrito no encontrado');
+        return res.status(404).json({ status: 'error', message: 'Carrito no encontrado' });
       }
 
       let totalAmount = 0;
@@ -111,7 +133,7 @@ class CartController {
 
       for (const item of cart.products) {
         const product = await productManager.getProductById(item.product);
-        if (product.stock >= item.quantity) {
+        if (product && product.stock >= item.quantity) {
           product.stock -= item.quantity;
           totalAmount += product.price * item.quantity;
           purchasedProducts.push(item);
@@ -126,22 +148,28 @@ class CartController {
           code: uuidv4(),
           purchase_datetime: new Date(),
           amount: totalAmount,
-          purchaser: request.user.email
+          purchaser: req.user.email
         });
         await ticket.save();
       }
 
-      cart.products = failedProducts.map(productId => cart.products.find(item => item.product === productId));
+      cart.products = failedProducts.map(productId => cart.products.find(item => item.product.toString() === productId.toString()));
       await cart.save();
 
-      response.status(200).send({
+      res.status(200).json({
+        status: 'success',
         message: 'Compra completada',
-        failedProducts
+        payload: {
+          purchasedProducts,
+          failedProducts,
+          totalAmount
+        }
       });
     } catch (error) {
-      response.status(500).send('Error al finalizar la compra');
+      console.error('Error al finalizar la compra:', error);
+      res.status(500).json({ status: 'error', message: 'Error al finalizar la compra' });
     }
   }
-};
+}
 
 export default new CartController();

@@ -14,8 +14,12 @@ export const PERSISTENCE = process.env.PERSISTENCE || 'MONGO';
 export const NODE_ENV = process.env.NODE_ENV || 'production';
 
 // Conexión a la base de datos
-export const connectDB = () => {
-    connect(MONGO_URI)
-        .then(() => console.log('Conexión exitosa a la base de datos'))
-        .catch((error) => console.error('Error conectando a la base de datos:', error));
+export const connectDB = async () => {
+    try {
+        await connect(MONGO_URI);
+        console.log('Conexión exitosa a la base de datos');
+    } catch (error) {
+        console.error('Error conectando a la base de datos:', error);
+        throw error; // Propaga el error para que pueda ser manejado en el archivo principal
+    }
 };

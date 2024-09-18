@@ -7,50 +7,107 @@ import nodemailer from 'nodemailer';
 const userManager = new UserManagerMongo();
 
 class SessionsController {
-  registerUser = async (request, response) => {
-    const { first_name, last_name, age, email, password } = request.body;
+  registerUser = async (req, res) => {
+    const { first_name, last_name, age, email, password } = req.body;
 
     try {
       const user = await userManager.createUser({ first_name, last_name, age, email, password });
-      response.json({ status: 'success', message: 'Usuario registrado', user });
+      res.json({ status: 'success', message: 'Usuario registrado', user });
     } catch (error) {
       console.error('Error al registrar usuario:', error);
-      response.status(500).json({ status: 'error', message: error.message });
+      res.status(500).json({ status: 'error', message: error.message });
     }
   }
 
-  loginUser = async (request, response) => {
-    const { email, password } = request.body;
-
-    console.log('Login attempt with email:', email, 'and password:', password);
+  loginUser = async (req, res) => {
+    const { email, password } = req.body;
 
     try {
       const user = await userManager.authenticateUser(email, password);
 
-      console.log('Authenticated user:', user);
-
       if (!user) {
-        response.status(401).json({ status: 'error', message: 'Las credenciales son incorrectas' });
-      } else {
-        const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
-
-        console.log('Generated JWT:', token);
-
-        response.cookie('jwt', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax' });
-
-        console.log('Cookie set with token');
-
-        response.json({ status: 'success', message: 'Usuario logueado', token });
+        return res.status(401).json({ status: 'error', message: 'Credenciales incorrectas' });
       }
+
+      const token = this.generateTokenForUser(user);
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict', // Cambiado de 'Lax' a 'strict' para mayor seguridad
+        maxAge: 24 * 60 * 60 * 1000 // 24 horas
+      });
+
+      console.log('Token generado y enviado en cookie:', token);
+
+      res.json({ 
+        status: 'success', 
+        message: 'Login exitoso', 
+        user: { 
+          id: user._id, 
+          email: user.email, 
+          role: user.role 
+        }
+      });
     } catch (error) {
-      console.error('Error in loginUser:', error);
-      response.status(500).json({ status: 'error', message: error.message });
+      console.error('Error en loginUser:', error);
+      res.status(500).json({ status: 'error', message: error.message });
     }
   }
 
-  resetPassword = async (request, response) => {
-    const { token } = request.params;
-    const { newPassword } = request.body;
+  generateTokenForUser = (user) => {
+    return jwt.sign(
+      { id: user._id, role: user.role, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+  }
+
+  githubCallback = (req, res) => {
+    const token = this.generateTokenForUser(req.user);
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 horas
+    });
+    res.redirect('/');
+  }
+
+  getCurrentUser = (req, res) => {
+    res.json({ user: req.user });
+  }
+
+  sendPasswordResetEmail = async (req, res) => {
+    const { email } = req.body;
+    try {
+      const user = await userManager.getUserBy({ email });
+      if (!user) {
+        return res.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
+      }
+
+      const resetToken = crypto.randomBytes(20).toString('hex');
+      user.resetPasswordToken = resetToken;
+      user.resetPasswordExpires = Date.now() + 3600000; // 1 hora
+      await userManager.updateUser(user._id, user);
+
+      // Aquí deberías implementar el envío del email con el token
+      // Por ahora, solo devolveremos el token en la respuesta
+      res.json({ status: 'success', message: 'Email de recuperación enviado', resetToken });
+    } catch (error) {
+      console.error('Error al enviar email de recuperación:', error);
+      res.status(500).json({ status: 'error', message: error.message });
+    }
+  }
+
+  renderResetPasswordForm = (req, res) => {
+    const { token } = req.params;
+    res.render('reset-password', { token });
+  }
+
+  resetPassword = async (req, res) => {
+    const { token } = req.params;
+    const { newPassword } = req.body;
 
     try {
       const user = await userManager.getUserBy({
@@ -59,11 +116,11 @@ class SessionsController {
       });
 
       if (!user) {
-        return response.status(400).send('El token de recuperación de contraseña es inválido o ha expirado');
+        return res.status(400).json({ status: 'error', message: 'El token de recuperación de contraseña es inválido o ha expirado' });
       }
 
       if (await userManager.comparePassword(newPassword, user.password)) {
-        return response.status(400).send('La nueva contraseña no puede ser igual a la anterior');
+        return res.status(400).json({ status: 'error', message: 'La nueva contraseña no puede ser igual a la anterior' });
       }
 
       user.password = newPassword;
@@ -71,13 +128,33 @@ class SessionsController {
       user.resetPasswordExpires = undefined;
       await userManager.updateUser(user._id, user);
 
-      response.send('Contraseña restablecida correctamente');
+      res.json({ status: 'success', message: 'Contraseña restablecida correctamente' });
     } catch (error) {
-      response.status(500).send('Error al restablecer la contraseña');
+      console.error('Error al restablecer la contraseña:', error);
+      res.status(500).json({ status: 'error', message: error.message });
     }
   }
 
-  // Otros métodos aquí, como uploadDocuments, getAllUsers, getUserById, updateUser, etc.
+  logoutUser = (req, res) => {
+    res.clearCookie('token');
+    res.json({ status: 'success', message: 'Sesión cerrada correctamente' });
+  }
+
+  checkSession = (req, res) => {
+    if (req.user) {
+      res.json({
+        status: 'success',
+        user: {
+          id: req.user.id,
+          email: req.user.email,
+          role: req.user.role
+        }
+      });
+    } else {
+      res.status(401).json({ status: 'error', message: 'No hay sesión activa' });
+    }
+  }
 }
 
 export default new SessionsController();
+

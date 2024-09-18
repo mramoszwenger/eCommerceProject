@@ -6,10 +6,29 @@ class ProductManagerMongo {
     }
 
     addProduct = async (product) => {
+        console.log('Iniciando addProduct en ProductManagerMongo');
+        console.log('Datos del producto recibidos:', JSON.stringify(product, null, 2));
+
+        // Validación de campos requeridos
+        const requiredFields = ['title', 'description', 'category', 'price', 'stock', 'code'];
+        for (const field of requiredFields) {
+            if (!product[field]) {
+                console.error(`Campo requerido faltante: ${field}`);
+                throw new Error(`El campo ${field} es requerido`);
+            }
+        }
+
         try {
-            return await productModel.create(product)
+            const newProduct = await this.productModel.create(product);
+            console.log('Producto creado exitosamente:', JSON.stringify(newProduct, null, 2));
+            return newProduct;
         } catch (error) {
-            console.error(error)
+            console.error('Error al crear el producto en ProductManagerMongo:', error);
+            console.error('Error detallado:', JSON.stringify(error, null, 2));
+            if (error.code === 11000) {
+                throw new Error('Ya existe un producto con ese código');
+            }
+            throw error; // Propaga el error para que pueda ser manejado en capas superiores
         }
     }
 

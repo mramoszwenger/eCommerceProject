@@ -41,9 +41,9 @@ export const initializePassport = () => {
       try {
         const user = await userService.getUserBy({ _id: jwt_payload.id });
         if (!user) {
-          return done(null, false, { message: 'No se encontro usuario' });
+          return done(null, false, { message: 'No se encontró usuario' });
         }  
-        return done(null, jwt_payload);
+        return done(null, user); // Devuelve el usuario completo, no solo el payload
       } catch (error) {
           return done(error);
       }

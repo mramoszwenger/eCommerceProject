@@ -1,0 +1,10 @@
+<h1>Editar Producto</h1>
+<form action="/api/product/{{product._id}}?_method=PUT" method="POST">
+  <input type="text" name="title" value="{{product.title}}" required>
+  <textarea name="description" required>{{product.description}}</textarea>
+  <input type="text" name="category" value="{{product.category}}" required>
+  <input type="number" name="price" value="{{product.price}}" required>
+  <input type="number" name="stock" value="{{product.stock}}" required>
+  <input type="text" name="code" value="{{product.code}}" required>
+  <button type="submit">Actualizar Producto</button>
+</form>

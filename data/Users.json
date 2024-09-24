@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "username": "juanperez",
+    "firstName": "Juan Pablo",
+    "lastName": "Pérez",
+    "email": "juanperez@example.com",
+    "password": "9b8769a4a742959a2d0298c36fb70623f2dfacda8436237df08d8dfd5b37374c"
+  },
+  {
+    "id": 3,
+    "username": "mariasanchez",
+    "firstName": "María",
+    "lastName": "Sanchéz",
+    "email": "mariasanchez@example.com",
+    "password": "9b8769a4a742959a2d0298c36fb70623f2dfacda8436237df08d8dfd5b37374c"
+  },
+  {
+    "id": 4,
+    "username": "jorgegarcia",
+    "firstName": "Jorge",
+    "lastName": "García",
+    "email": "jorgegarcia@example.com",
+    "password": "9b8769a4a742959a2d0298c36fb70623f2dfacda8436237df08d8dfd5b37374c"
+  },
+  {
+    "id": 5,
+    "username": "florenciarodriguez",
+    "firstName": "Florencia",
+    "lastName": "Rodríguez",
+    "email": "florenciarodriguez@example.com",
+    "password": "9b8769a4a742959a2d0298c36fb70623f2dfacda8436237df08d8dfd5b37374c"
+  },
+  {
+    "id": 6,
+    "firstName": "Juan Carlos",
+    "lastName": "Argento",
+    "email": "jcargento@example.com",
+    "password": "9b8769a4a742959a2d0298c36fb70623f2dfacda8436237df08d8dfd5b37374c"
+  }
+]

@@ -1,0 +1,94 @@
+<h1>{{title}}</h1>
+
+<div class="cart-container">
+  <h2>Carrito ID: {{cartId}}</h2>
+  
+  {{#if cart.products.length}}
+    <ul class="cart-products">
+      {{#each cart.products}}
+        <li class="cart-item">
+          <img src="{{this.product.image}}" alt="{{this.product.title}}" class="product-image">
+          <div class="product-details">
+            <h3>{{this.product.title}}</h3>
+            <p>Precio: ${{this.product.price}}</p>
+            <p>Cantidad: {{this.quantity}}</p>
+            <p>Subtotal: ${{multiply this.product.price this.quantity}}</p>
+          </div>
+          <form onsubmit="updateProductQuantity(event, '{{../cartId}}', '{{this.product._id}}', this)">
+            <input type="number" name="quantity" value="{{this.quantity}}" min="1">
+            <button type="submit">Actualizar cantidad</button>
+          </form>
+          <form onsubmit="removeProductFromCart(event, '{{../cartId}}', '{{this.product._id}}')">
+            <button type="submit">Eliminar del carrito</button>
+          </form>
+        </li>
+      {{/each}}
+    </ul>
+    
+    <div class="cart-total">
+      <h3>Total del carrito: ${{calculateTotal cart.products}}</h3>
+    </div>
+    
+    <button onclick="clearCart('{{cartId}}')" class="btn btn-danger">Vaciar carrito</button>
+    
+    <a href="/checkout" class="btn btn-primary">Proceder al pago</a>
+  {{else}}
+    <p>El carrito está vacío.</p>
+  {{/if}}
+  
+  <a href="/products" class="btn btn-secondary">Continuar comprando</a>
+</div>
+
+<script>
+function removeProductFromCart(event, cartId, productId) {
+  event.preventDefault();
+  fetch(`/api/carts/${cartId}/products/${productId}`, {
+    method: 'DELETE',
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Producto eliminado:', data);
+    // Recargar la página para reflejar los cambios
+    window.location.reload();
+  })
+  .catch(error => console.error('Error:', error));
+}
+
+function updateProductQuantity(event, cartId, productId, form) {
+  event.preventDefault();
+  const quantity = form.querySelector('input[name="quantity"]').value;
+  
+  fetch(`/api/carts/${cartId}/products/${productId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ quantity: parseInt(quantity, 10) })
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Cantidad actualizada:', data);
+    // Recargar la página para reflejar los cambios
+    window.location.reload();
+  })
+  .catch(error => console.error('Error:', error));
+}
+
+function clearCart(cartId) {
+  if (confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
+    fetch(`/api/carts/${cartId}`, {
+      method: 'DELETE',
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Carrito vaciado:', data);
+      // Recargar la página para reflejar los cambios
+      window.location.reload();
+    })
+    .catch(error => {
+      console.error('Error al vaciar el carrito:', error);
+      alert('Error al vaciar el carrito');
+    });
+  }
+}
+</script>

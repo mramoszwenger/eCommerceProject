@@ -1,47 +1,81 @@
-import { PERSISTENCE } from "../config/config.js";
+import { config } from '../config/config.js';
+import { connectDB } from '../config/database.js';
 
 class DaoFactory {
   constructor() {
-    this.ProductsDao = null;
-    this.CartsDao = null;
-    this.UsersDao = null;
+    this.ProductDao = null;
+    this.CartDao = null;
+    this.UserDao = null;
+    this.MessageDao = null;
+    this.initializationPromise = null;
   }
 
-  async initializeDaos() {
-    switch (PERSISTENCE) {
-      case "MEMORY": {
-        // Implementar DAOs en memoria.
-        break;
-      }
-
-      case "FS": {
-        const { default: ProductDaoFS } = await import('../daos/fs/productsManagerFS.js');
-        this.ProductsDao = ProductDaoFS;
-        console.log('ProductsDao (FS):', this.ProductsDao);
-        break;
-      }
-
-      default: {
-        // MONGO
-        const { connectDB } = await import("../config/config.js");
-        connectDB();
-
-        const { default: ProductManagerMongo } = await import("../daos/mongo/productsDaoMongo.js");
-        const { default: CartManagerMongo } = await import("../daos/mongo/cartsDaoMongo.js");
-        const { default: UserManagerMongo } = await import("../daos/mongo/usersDaoMongo.js");
-
-        this.ProductsDao = new ProductManagerMongo();
-        this.CartsDao = new CartManagerMongo();
-        this.UsersDao = new UserManagerMongo();
-        console.log('ProductsDao (Mongo):', this.ProductsDao);
-        console.log('CartsDao (Mongo):', this.CartsDao);
-        console.log('UsersDao (Mongo):', this.UsersDao);
-        break;
-      }
+  initializeDaos = async () => {
+    if (this.initializationPromise) {
+      return this.initializationPromise;
     }
 
-    console.log('PERSISTENCE:', PERSISTENCE);
-    return { ProductsDao: this.ProductsDao, CartsDao: this.CartsDao, UsersDao: this.UsersDao };
+    this.initializationPromise = (async () => {
+      if (this.ProductDao && this.CartDao && this.UserDao && this.MessageDao) {
+        console.log('DAOs already initialized');
+        return { 
+          ProductDao: this.ProductDao, 
+          CartDao: this.CartDao, 
+          UserDao: this.UserDao,
+          MessageDao: this.MessageDao
+        };
+      }
+
+      if (config.PERSISTENCE === "MONGODB") {
+        await connectDB();
+      }
+
+      switch (config.PERSISTENCE) {
+        case "MEMORY": {
+          // Implementar DAOs en memoria si es necesario
+          throw new Error('Persistence type MEMORY not implemented yet');
+        }
+
+        case "FILESYSTEM": {
+          const { default: ProductManager } = await import('../daos/fs/productDaoFS.js');
+          const { default: CartManager } = await import('../daos/fs/cartDaoFS.js');
+          const { default: UserManager } = await import('../daos/fs/userDaoFS.js');
+
+          this.ProductDao = new ProductManager();
+          this.CartDao = new CartManager();
+          this.UserDao = new UserManager();
+          break;
+        }
+
+        case "MONGODB": {
+          const { default: ProductDaoMongo } = await import("../daos/mongo/productDaoMongo.js");
+          const { default: CartDaoMongo } = await import("../daos/mongo/cartDaoMongo.js");
+          const { default: UserDaoMongo } = await import("../daos/mongo/userDaoMongo.js");
+          const { default: MessageDaoMongo } = await import("../daos/mongo/messageDaoMongo.js");
+
+          this.ProductDao = new ProductDaoMongo();
+          this.CartDao = new CartDaoMongo();
+          this.UserDao = new UserDaoMongo();
+          this.MessageDao = new MessageDaoMongo();
+          break;
+        }
+
+        default:
+          throw new Error('Persistence type not recognized');
+      }
+
+      console.log('PERSISTENCE:', config.PERSISTENCE);
+      console.log('DAOs initialized successfully');
+
+      return { 
+        ProductDao: this.ProductDao, 
+        CartDao: this.CartDao, 
+        UserDao: this.UserDao,
+        MessageDao: this.MessageDao
+      };
+    })();
+
+    return this.initializationPromise;
   }
 }
 

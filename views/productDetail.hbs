@@ -1,0 +1,52 @@
+{{#if product}}
+  <h1>{{product.title}}</h1>
+
+  <div class="product-detail">
+    {{#if product.image}}
+      <img src="{{product.image}}" alt="{{product.title}}">
+    {{else}}
+      <p>Imagen no disponible</p>
+    {{/if}}
+    <p>Precio: ${{product.price}}</p>
+    <p>Categoría: {{product.category}}</p>
+    <p>Descripción: {{product.description}}</p>
+    <p>Stock: {{product.stock}}</p>
+    <form onsubmit="addToCart(event, '{{product._id}}', {{product.stock}})">
+      <label for="quantity">Cantidad:</label>
+      <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{product.stock}}">
+      <button type="submit">Agregar al Carrito</button>
+    </form>
+  </div>
+
+  <a href="/products">Volver a Productos</a>
+
+  <script>
+  function addToCart(event, productId, maxStock) {
+    event.preventDefault();
+    const quantity = parseInt(document.getElementById('quantity').value);
+    if (quantity > maxStock) {
+      alert('La cantidad no puede superar el stock disponible');
+      return;
+    }
+    fetch(`/api/carts/{{cartId}}/products/${productId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ quantity })
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert('Producto añadido al carrito');
+      console.log('Producto añadido al carrito:', data);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error al añadir el producto al carrito');
+    });
+  }
+  </script>
+{{else}}
+  <h1>Producto no encontrado</h1>
+  <a href="/products">Volver a Productos</a>
+{{/if}}

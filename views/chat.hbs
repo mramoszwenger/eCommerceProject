@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Chat</title>
+</head>
+<body>
+  <h1>Live Chat</h1>
+  <div id="chat-container">
+    <div id="messages"></div>
+    <form id="chat-form">
+      <input type="text" id="message-input" placeholder="Escribe tu mensaje..." required>
+      <button type="submit">Enviar</button>
+    </form>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const userEmail = "{{userEmail}}";
+
+    const messagesContainer = document.getElementById('messages');
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+
+    socket.on('message', (message) => {
+      const messageElement = document.createElement('div');
+      messageElement.textContent = `${message.user}: ${message.message}`;
+      messagesContainer.appendChild(messageElement);
+    });
+
+    chatForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const message = messageInput.value;
+      socket.emit('chatMessage', { user: userEmail, message }); // Enviar el correo del usuario junto con el mensaje
+      messageInput.value = '';
+    });
+
+    // Cargar mensajes anteriores
+    fetch('/api/messages')
+      .then(response => response.json())
+      .then(messages => {
+        messages.forEach(message => {
+          const messageElement = document.createElement('div');
+          messageElement.textContent = `${message.user}: ${message.message}`;
+          messagesContainer.appendChild(messageElement);
+        });
+      });
+  </script>
+</body>
+</html>

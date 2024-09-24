@@ -17,13 +17,12 @@ import productController from './controllers/productController.js';
 import cartController from './controllers/cartController.js';
 import MongoStore from 'connect-mongo';
 
-async function startServer() {
+export async function startServer() {
 	const app = express();
 	const server = http.createServer(app);
 	const io = initializeSocket(server);
 
-	// Inicializar DAOs y conectar a MongoDB si es necesario (una sola vez)
-	const { ProductDao, CartDao, UserDao } = await daoFactory.initializeDaos();
+	// No inicialices los DAOs aquí, ya deberían estar inicializados
 
 	// Inicializa los loaders
 	await loaders(app);
@@ -93,7 +92,9 @@ async function startServer() {
 	return { app, server, io };
 }
 
-// Ejecutar el servidor
-startServer().catch(error => {
-	console.error('Error al iniciar el servidor:', error);
-});
+// Si necesitas ejecutar el servidor directamente desde app.js
+if (require.main === module) {
+	startServer().catch(error => {
+		console.error('Error al iniciar el servidor:', error);
+	});
+}

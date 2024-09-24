@@ -1,0 +1,85 @@
+<h2>Actualizar Producto: {{product.title}}</h2>
+
+<form id="updateProductForm" action="/api/products/{{product.id}}" method="POST" enctype="multipart/form-data">
+  <input type="hidden" name="_method" value="PUT">
+  
+  <div>
+    <label for="title">Título:</label>
+    <input type="text" id="title" name="title" value="{{product.title}}" required>
+  </div>
+
+  <div>
+    <label for="description">Descripción:</label>
+    <textarea id="description" name="description" required>{{product.description}}</textarea>
+  </div>
+
+  <div>
+    <label for="code">Código:</label>
+    <input type="text" id="code" name="code" value="{{product.code}}" required>
+  </div>
+
+  <div>
+    <label for="price">Precio:</label>
+    <input type="number" id="price" name="price" step="0.01" value="{{product.price}}" required>
+  </div>
+
+  <div>
+    <label for="stock">Stock:</label>
+    <input type="number" id="stock" name="stock" value="{{product.stock}}" required>
+  </div>
+
+  <div>
+    <label for="category">Categoría:</label>
+    <input type="text" id="category" name="category" value="{{product.category}}" required>
+  </div>
+
+  <div>
+    <label>Imagen actual:</label>
+    {{#if product.image}}
+      <img src="{{product.image}}" alt="{{product.title}}" style="max-width: 200px;">
+    {{else}}
+      <p>No hay imagen</p>
+    {{/if}}
+  </div>
+
+  <div>
+    <label for="image">Nueva imagen del producto:</label>
+    <input type="file" id="image" name="image" accept="image/*">
+  </div>
+
+  <button type="submit">Actualizar Producto</button>
+</form>
+
+<a href="/products/{{product.id}}">Cancelar y volver al detalle del producto</a>
+
+<script>
+document.getElementById('updateProductForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var formData = new FormData(this);
+  
+  console.log('Enviando formulario...');
+  for (var pair of formData.entries()) {
+    console.log(pair[0] + ': ' + pair[1]);
+  }
+
+  fetch(this.action, {
+    method: 'PUT',
+    body: formData
+  })
+  .then(response => {
+    console.log('Respuesta recibida:', response);
+    return response.json().then(data => ({status: response.status, body: data}));
+  })
+  .then(({status, body}) => {
+    console.log('Datos recibidos:', body);
+    if (status >= 400) {
+      throw new Error(body.error || body.details || 'Error desconocido');
+    }
+    window.location.href = '/products/{{product.id}}';
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error al actualizar el producto: ' + error.message);
+  });
+});
+</script>

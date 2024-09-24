@@ -1,0 +1,79 @@
+<h2>Nuestros Productos</h2>
+
+<form id="filter-form" action="/products" method="GET">
+  <label for="query">Buscar:</label>
+  <input type="text" id="query" name="query" value="{{query}}" placeholder="Categoría, título o descripción">
+
+  <label for="sort">Ordenar por precio:</label>
+  <select id="sort" name="sort">
+    <option value="">Sin orden</option>
+    <option value="asc" {{#if (eq sort 'asc')}}selected{{/if}}>Ascendente</option>
+    <option value="desc" {{#if (eq sort 'desc')}}selected{{/if}}>Descendente</option>
+  </select>
+
+  <label for="limit">Productos por página:</label>
+  <input type="number" id="limit" name="limit" value="{{limit}}" min="1">
+
+  <button type="submit">Aplicar Filtros</button>
+</form>
+
+<div id="product-grid" class="product-grid">
+  {{#each products}}
+    <div class="product-card">
+      <img src="{{this.image}}" alt="{{this.title}}">
+      <h3>{{this.title}}</h3>
+      <p>{{this.description}}</p>
+      <p>Precio: ${{this.price}}</p>
+      <p>Categoría: {{this.category}}</p>
+      <p>Stock: {{this.stock}}</p>
+      <a href="/products/{{this._id}}" class="btn">Ver detalles</a>
+      <form onsubmit="addToCart(event, '{{this._id}}', {{this.stock}})">
+        <label for="quantity-{{this._id}}">Cantidad:</label>
+        <input type="number" id="quantity-{{this._id}}" name="quantity" value="1" min="1" max="{{this.stock}}">
+        <button type="submit">Agregar al Carrito</button>
+      </form>
+    </div>
+  {{else}}
+    <p>No se encontraron productos.</p>
+  {{/each}}
+</div>
+
+<div id="pagination">
+  {{#if hasPrevPage}}
+    <a href="{{prevLink}}" class="btn">Anterior</a>
+  {{/if}}
+
+  <span>Página {{page}} de {{totalPages}}</span>
+
+  {{#if hasNextPage}}
+    <a href="{{nextLink}}" class="btn">Siguiente</a>
+  {{/if}}
+</div>
+
+<script>
+function addToCart(event, productId, maxStock) {
+  event.preventDefault();
+  const quantityInput = document.getElementById(`quantity-${productId}`);
+  const quantity = parseInt(quantityInput.value);
+  if (quantity > maxStock) {
+    alert('La cantidad no puede superar el stock disponible');
+    return;
+  }
+  fetch(`/api/carts/{{cartId}}/products/${productId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ quantity })
+  })
+  .then(response => response.json())
+  .then(data => {
+    alert('Producto añadido al carrito');
+    console.log('Producto añadido al carrito:', data);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error al añadir el producto al carrito');
+  });
+}
+</script>

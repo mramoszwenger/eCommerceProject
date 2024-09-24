@@ -1,0 +1,104 @@
+[
+  {
+    "id": 1,
+    "title": "MOUSE LOGITECH M90",
+    "description": "DARK MIDNIGHT GRIS / NEGRO USB",
+    "price": 7073,
+    "code": "MLM90USB",
+    "stock": 25,
+    "image": "1726960624588-MOUSE-LOGITECH-M90.jpg",
+    "category": "Perifericos"
+  },
+  {
+    "id": 2,
+    "title": "MOUSE LOGITECH G203",
+    "description": "LIGHTSYNC RGB 200 A 8000DPI VELOCIDAD MAXIMA 300 IPS LENTE OPTICO 6 BOTONES NEGRO",
+    "price": 39512,
+    "code": "MLG203USB",
+    "stock": 1,
+    "category": "Perifericos",
+    "image": "1726953023997-MOUSE-LOGITECH-G203.jpg"
+  },
+  {
+    "id": 3,
+    "title": "MOUSE LOGITECH G403 HERO",
+    "description": "PESO 87.3 GRAMOS LIGHTSYNC RGB SENSON HERO 25K DIMENSIONES 124X68X43MM 100 A 25600DPI VELOCIDAD MAXIMA 400IPS",
+    "price": 78639,
+    "code": "MLG403USB",
+    "stock": 1,
+    "category": "Perifericos",
+    "image": "1727025351505-MOUSE-LOGITECH-G403.jpg"
+  },
+  {
+    "id": 4,
+    "title": "PENDRIVE 64GB KINGSTON",
+    "description": "DATATRAVELER EXODIA DTX USB 3.2",
+    "price": 11022,
+    "code": "PDK64GB",
+    "stock": 322,
+    "category": "Almacenamiento",
+    "image": "1727025455586-PENDRIVE-KINGSTON-EXODIA64GB.jpg"
+  },
+  {
+    "id": 5,
+    "title": "PENDRIVE 128GB KINGSTON",
+    "description": "DATATRAVELER EXODIA DTX USB 3.2",
+    "price": 16313,
+    "code": "PDK128GB",
+    "stock": 154,
+    "category": "Almacenamiento",
+    "image": "1727036835139-PENDRIVE-KINGSTON-EXODIA128GB.jpg"
+  },
+  {
+    "id": 6,
+    "title": "PENDRIVE 256GB KINGSTON",
+    "description": "DATATRAVELER EXODIA DTX USB 3.2",
+    "price": 32263,
+    "code": "PDK256GB",
+    "stock": 6,
+    "category": "Almacenamiento"
+  },
+  {
+    "id": 8,
+    "title": "KIT TECLADO + MOUSE LOGITECH MK270",
+    "description": "PILAS INCLUIDAS NEGRO INALAMBRICO ESPANOL",
+    "price": "34254",
+    "code": "KLMK270",
+    "stock": "18",
+    "category": "Perifericos",
+    "image": "1726953088503-KIT-LOGITECH-MK270.jpg"
+  },
+  {
+    "id": 9,
+    "title": "AURICULAR VINCHA JBL TUNE T520BT",
+    "description": "MANOS LIBRES CONTROL VOLUMEN BLUETOOTH 5.3 CARGA POR CABLE TIPO C BLANCO ORIGINAL",
+    "price": 67793,
+    "code": "AJBL520BT",
+    "stock": 2,
+    "category": "Perifericos",
+    "image": "1726953180427-AURICULAR-JBL-T520.jpg",
+    "status": true
+  },
+  {
+    "id": 10,
+    "title": "PARLANTE JBL GO 3",
+    "description": "BLUETOOTH 5.1 3W IPX7 WATERPROOF BATERIA 5HS IP67 A PRUEBA DE AGUA Y POLVO AZUL",
+    "price": 60456,
+    "code": "PJBLGO3",
+    "stock": 3,
+    "category": "Perifericos",
+    "image": "1726953149429-PARLANTE-JBL-GO3.jpg",
+    "status": true
+  },
+  {
+    "id": 11,
+    "title": "PARLANTE JBL CHARGE 5",
+    "description": "BLUETOOTH IPX7 WATERPROOF BATERIA HASTA 20HS CAMUFLADO VERDE",
+    "price": 339196,
+    "code": "PJBLC5",
+    "stock": 1,
+    "category": "Perifericos",
+    "image": "1727099009200-PARLANTE-JBL-CHARGE5.jpg",
+    "status": true
+  }
+]

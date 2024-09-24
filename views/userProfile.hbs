@@ -1,0 +1,46 @@
+<h1>Perfil de Usuario</h1>
+
+<div class="user-info">
+  <p><strong>Nombre:</strong> 
+    {{#if user.firstName}}{{user.firstName}}{{else}}No especificado{{/if}}
+    {{#if user.lastName}}{{user.lastName}}{{else}}{{/if}}
+  </p>
+  <p><strong>Email:</strong> {{user.email}}</p>
+  <p><strong>Rol:</strong> {{user.role}}</p>
+</div>
+
+<h2>Acciones</h2>
+<ul>
+  <li><a href="/products/add">Agregar Nuevo Producto</a></li>
+  <li><a href="/products">Ver Todos los Productos</a></li>
+  {{#if (eq user.role 'admin')}}
+    <li><a href="/admin/dashboard">Panel de Administración</a></li>
+  {{/if}}
+</ul>
+
+<h2>Mis Productos</h2>
+{{#if userProducts.length}}
+  <ul>
+    {{#each userProducts}}
+      <li>
+        <a href="/products/{{this.id}}">{{this.title}}</a>
+        <a href="/products/edit/{{this.id}}">Editar</a>
+      </li>
+    {{/each}}
+  </ul>
+{{else}}
+  <p>Aún no has agregado ningún producto.</p>
+{{/if}}
+
+<h2>Mis Compras</h2>
+{{#if userCarts.length}}
+  <ul>
+    {{#each userCarts}}
+      <li>
+        <a href="/carts/{{this.id}}">Carrito #{{this.id}}</a> - {{this.createdAt}}
+      </li>
+    {{/each}}
+  </ul>
+{{else}}
+  <p>No tienes carritos finalizados.</p>
+{{/if}}

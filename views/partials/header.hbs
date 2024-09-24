@@ -1,0 +1,28 @@
+<header>
+    <nav>
+        <a href="/">errezeta Shop</a>
+        <a href="/products">Productos</a>
+        {{#if isAuthenticated}}
+            {{#if user.firstName}}
+                <span>Hola, {{user.firstName}}</span>
+            {{/if}}
+            <a href="/profile">Mi Perfil</a>
+            {{#if user.role}}
+                {{#if (eq user.role 'admin')}}
+                    <a href="/admin">Panel de Administración</a>
+                {{/if}}
+            {{/if}}
+            {{#if user.cartId}}
+                <a href="/carts/{{user.cartId}}">Mi Carrito</a>
+            {{else}}
+                <span>Carrito no disponible</span>
+            {{/if}}
+            <form action="/api/sessions/logout" method="POST" style="display: inline;">
+                <button type="submit">Cerrar Sesión</button>
+            </form>
+        {{else}}
+            <a href="/login">Iniciar Sesión</a>
+            <a href="/register">Crear Cuenta</a>
+        {{/if}}
+    </nav>
+</header>

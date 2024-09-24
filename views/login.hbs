@@ -1,0 +1,57 @@
+<h2>Iniciar Sesión</h2>
+{{#if messages.error}}
+  <div class="error-message">{{messages.error}}</div>
+{{/if}}
+{{#if messages.success}}
+  <div class="success-message">{{messages.success}}</div>
+{{/if}}
+
+<form id="loginForm">
+  <div>
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+  </div>
+  <div>
+    <label for="password">Contraseña:</label>
+    <input type="password" id="password" name="password" required>
+  </div>
+  <button type="submit">Iniciar Sesión</button>
+</form>
+
+<p>¿No tienes una cuenta? <a href="/register">Crea una aquí</a></p>
+
+<script>
+
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  fetch('/api/sessions/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'success') {
+      window.location.href = data.redirectUrl;
+    } else {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.textContent = data.message;
+      document.querySelector('h2').insertAdjacentElement('afterend', errorDiv);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = 'Ocurrió un error al intentar iniciar sesión';
+    document.querySelector('h2').insertAdjacentElement('afterend', errorDiv);
+  });
+});
+</script>

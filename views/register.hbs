@@ -1,0 +1,81 @@
+<h2>Registro de Usuario</h2>
+
+{{#if messages.error}}
+  <div class="error-message">{{messages.error}}</div>
+{{/if}}
+
+{{#if messages.success}}
+  <div class="success-message">{{messages.success}}</div>
+{{/if}}
+
+<form id="registerForm">
+  <div>
+    <label for="firstName">Nombre:</label>
+    <input type="text" id="firstName" name="firstName" required>
+  </div>
+  <div>
+    <label for="lastName">Apellido:</label>
+    <input type="text" id="lastName" name="lastName" required>
+  </div>
+  <div>
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+  </div>
+  <div>
+    <label for="password">Contraseña:</label>
+    <input type="password" id="password" name="password" required>
+  </div>
+  <div>
+    <label for="confirmPassword">Confirmar Contraseña:</label>
+    <input type="password" id="confirmPassword" name="confirmPassword" required>
+  </div>
+  <button type="submit">Registrarse</button>
+</form>
+
+<p>¿Ya tienes una cuenta? <a href="/login">Inicia sesión aquí</a></p>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const firstName = document.getElementById('firstName').value;
+  const lastName = document.getElementById('lastName').value;
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+
+  if (password !== confirmPassword) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = 'Las contraseñas no coinciden';
+    document.querySelector('h2').insertAdjacentElement('afterend', errorDiv);
+    return;
+  }
+
+  fetch('/api/sessions/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ firstName, lastName, email, password, confirmPassword }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'success') {
+      window.location.href = data.redirectUrl;
+    } else {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.textContent = data.message;
+      document.querySelector('h2').insertAdjacentElement('afterend', errorDiv);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = 'Ocurrió un error al intentar registrarse';
+    document.querySelector('h2').insertAdjacentElement('afterend', errorDiv);
+  });
+});
+</script>

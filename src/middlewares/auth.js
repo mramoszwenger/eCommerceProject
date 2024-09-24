@@ -1,20 +1,20 @@
-export const isAuthenticated = (req, res, next) => {
-  if (req.session && req.session.user && req.session.user.id) {
+export const isAuthenticated = (request, response, next) => {
+  if (request.session && request.session.user && request.session.user.id) {
     return next();
   }
-  res.redirect('/login');
+  response.redirect('/login');
 };
 
-export const isNotAuthenticated = (req, res, next) => {
-  if (req.session && req.session.user) {
-    return res.redirect('/profile');
+export const isNotAuthenticated = (request, response, next) => {
+  if (request.session && request.session.user) {
+    return response.redirect('/profile');
   }
   next();
 };
 
-export const setUserInLocals = (req, res, next) => {
-  res.locals.isAuthenticated = !!(req.session && req.session.user);
-  res.locals.user = req.session.user || null;
+export const setUserInLocals = (request, response, next) => {
+  response.locals.isAuthenticated = !!(request.session && request.session.user);
+  response.locals.user = request.session.user || null;
   next();
 };
 

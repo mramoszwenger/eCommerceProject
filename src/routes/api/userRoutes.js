@@ -4,13 +4,28 @@ import { isAuthenticated } from '../../middlewares/auth.js';
 
 const router = express.Router();
 
-router.get('/', userController.getAllUsers); // Obtener todos los usuarios
-router.get('/:uid', userController.getUserById); // Obtener un usuario por ID
-router.post('/', userController.addUser); // Crear un nuevo usuario
-router.put('/:uid', userController.updateUser); // Actualizar un usuario
-router.delete('/:uid', userController.deleteUser); // Eliminar un usuario
-router.post('/login', userController.loginUser); // Login de usuario
-router.get('/profile', isAuthenticated, userController.renderUserProfile); // Ver perfil de usuario
-router.post('/logout', userController.logoutUser); // Logout de usuario
+// Obtener todos los usuarios
+router.get('/', userController.getAllUsers);
+
+// Obtener un usuario por ID
+router.get('/:uid', userController.getUserById);
+
+// Agregar un nuevo usuario
+router.post('/', userController.addUser);
+
+// Actualizar un usuario
+router.put('/:uid', userController.updateUser);
+
+// Eliminar un usuario
+router.delete('/:uid', userController.deleteUser);
+
+// Login de usuario
+router.post('/login', userController.loginUser);
+
+// Perfil de usuario
+router.get('/profile', isAuthenticated, userController.renderUserProfile);
+
+// Cierre de sesión
+router.post('/logout', userController.logoutUser);
 
 export default router;

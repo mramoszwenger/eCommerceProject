@@ -120,9 +120,7 @@ class CartController {
   renderCart = async (request, response) => {
     try {
       const { cid } = request.params;
-      console.log("Cart ID recibido:", cid); // Agrega este log para depuración
       
-      // Verifica que cid sea un ObjectId válido
       if (!mongoose.Types.ObjectId.isValid(cid)) {
         return response.status(400).render('error', { error: 'ID de carrito inválido' });
       }

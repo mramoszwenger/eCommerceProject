@@ -22,15 +22,15 @@ async function startServer() {
 	const server = http.createServer(app);
 	const io = initializeSocket(server);
 
-	// Inicializar DAOs y conectar a MongoDB si es necesario (una sola vez)
+	// Inicializar DAOs y conectar a MongoDB
 	const { ProductDao, CartDao, UserDao } = await daoFactory.initializeDaos();
 
 	// Inicializa los loaders
 	await loaders(app);
 
 	// Middleware de logging para depuración
-	app.use(config.UPLOAD_PATH, (req, res, next) => {
-		console.log('Accediendo a:', req.url);
+	app.use(config.UPLOAD_PATH, (request, response, next) => {
+		console.log('Accediendo a:', request.url);
 		next();
 	});
 
@@ -38,7 +38,7 @@ async function startServer() {
 	app.use(session({
 		secret: config.SESSION_SECRET,
 		resave: false,
-		saveUninitialized: false, // Cambiado a false
+		saveUninitialized: false,
 		store: MongoStore.create({
 			mongoUrl: config.MONGO_URI,
 			ttl: 60 * 60 // 1 hora
@@ -53,10 +53,10 @@ async function startServer() {
 	app.use(flash());
 
 	// Middleware para establecer variables locales
-	app.use((req, res, next) => {
-		res.locals.isAuthenticated = req.session.userId != null;
-		res.locals.user = req.session.user || null;
-		res.locals.messages = req.flash();
+	app.use((request, response, next) => {
+		response.locals.isAuthenticated = request.session.userId != null;
+		response.locals.user = request.session.user || null;
+		response.locals.messages = request.flash();
 		next();
 	});
 
@@ -68,15 +68,15 @@ async function startServer() {
 	app.use('/api/sessions', sessionRouter);
 
 	// Middleware para rutas no encontradas
-	app.use((req, res, next) => {
-		console.log(`Ruta no encontrada: ${req.method} ${req.url}`);
-		res.status(404).send('Página no encontrada');
+	app.use((request, response, next) => {
+		console.log(`Ruta no encontrada: ${request.method} ${request.url}`);
+		response.status(404).send('Página no encontrada');
 	});
 
 	// Middleware de manejo de errores
-	app.use((err, req, res, next) => {
+	app.use((err, request, response, next) => {
 		console.error(err.stack);
-		res.status(500).json({ error: 'Error interno del servidor' });
+		response.status(500).json({ error: 'Error interno del servidor' });
 	});
 
 	// Inicializar controladores con los DAOs ya inicializados

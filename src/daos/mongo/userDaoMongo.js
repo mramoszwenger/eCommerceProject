@@ -2,9 +2,7 @@ import { User } from '../../models/userModel.js';
 import bcrypt from 'bcrypt';
 
 class UserDaoMongo {
-  init = async () => {
-    // No es necesario inicializar nada para MongoDB
-  }
+  init = async () => {}
 
   addUser = async ({ username, firstName, lastName, email, password }) => {
     const hashedPassword = await bcrypt.hash(password, 10);

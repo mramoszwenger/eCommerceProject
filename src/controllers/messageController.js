@@ -10,23 +10,23 @@ class MessageController {
     this.messageManager = MessageDao;
   }
 
-  getAllMessages = async (req, res) => {
+  getAllMessages = async (request, response) => {
     try {
       const messages = await this.messageManager.getAllMessages();
-      res.json(messages);
+      response.json(messages);
     } catch (error) {
       console.error('Error al obtener los mensajes:', error);
-      res.status(500).json({ error: 'Error al obtener los mensajes' });
+      response.status(500).json({ error: 'Error al obtener los mensajes' });
     }
   }
 
-  addMessage = async (req, res) => {
+  addMessage = async (request, response) => {
     try {
       const newMessage = await this.messageManager.addMessage(req.body);
-      res.status(201).json(newMessage);
+      response.status(201).json(newMessage);
     } catch (error) {
       console.error('Error al agregar el mensaje:', error);
-      res.status(400).json({ error: error.message });
+      response.status(400).json({ error: error.message });
     }
   }
 }

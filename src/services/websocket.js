@@ -36,7 +36,7 @@ export async function initializeSocket(server) {
       console.error('Error al obtener los productos:', error);
     });
 
-    // Manejar la creación de un nuevo producto
+    // Manejar cuando se agrega un nuevo producto al carrito
     socket.on('newProduct', async (productData) => {
       try {
         const newProduct = await productManager.addProduct(productData);
@@ -52,7 +52,7 @@ export async function initializeSocket(server) {
       }
     });
 
-    // Manejar la eliminación de un producto
+    // Manejar la eliminación de un producto del carrito
     socket.on('deleteProduct', async (productId) => {
       try {
         await productManager.deleteProduct(productId);

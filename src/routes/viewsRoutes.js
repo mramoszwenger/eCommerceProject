@@ -60,34 +60,28 @@ router.get('/register', isNotAuthenticated, (request, response) => {
   response.render('register', { title: 'Registro de Usuario' });
 });
 
-// Nueva ruta para la vista de productos con filtros y paginación
 router.get('/products', ProductController.renderProductsPage);
 
-// Ruta para mostrar el formulario de agregar producto (protegida)
 router.get('/products/add', isAuthenticated, ProductController.renderAddProductForm);
 
-// Nueva ruta para la vista de detalle de producto
 router.get('/products/:pid', ProductController.renderProductDetail);
 
-// Ruta para el perfil de usuario (protegida)
 router.get('/profile', isAuthenticated, UserController.renderUserProfile);
 
-// Nueva ruta para visualizar un carrito específico
 router.get('/carts/:cid', isAuthenticated, CartController.renderCart);
 
-// Ruta para cerrar sesión (protegida)
-router.get('/logout', isAuthenticated, (req, res) => {
-  req.session.destroy((err) => {
+router.get('/logout', isAuthenticated, (request, response) => {
+  request.session.destroy((err) => {
     if (err) {
       console.error('Error al cerrar sesión:', err);
     }
-    res.redirect('/login');
+    response.redirect('/login');
   });
 });
 
-router.get('/chat', isAuthenticated, (req, res) => {
-  const userEmail = req.session.user.email;
-  res.render('chat', { title: 'Chat', userEmail });
+router.get('/chat', isAuthenticated, (request, response) => {
+  const userEmail = request.session.user.email;
+  response.render('chat', { title: 'Chat', userEmail });
 });
 
 export default router;

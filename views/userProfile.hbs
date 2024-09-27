@@ -1,5 +1,5 @@
 <div class="user-profile container">
-  <h1 class="page-title">Perfil de Usuario</h1>
+  <h1 class="page-title">Mi Perfil</h1>
 
   <section class="user-info card">
     <h2>Información Personal</h2>
@@ -14,8 +14,8 @@
   <section class="user-actions card">
     <h2>Acciones</h2>
     <ul class="action-list">
-      <li><a href="/products/add" class="btn">Agregar Nuevo Producto</a></li>
-      <li><a href="/products" class="btn">Ver Todos los Productos</a></li>
+      <li><a href="/products/add" class="btn view-details-btn">Agregar Nuevo Producto</a></li>
+      <li><a href="/products" class="btn view-details-btn">Ver Todos los Productos</a></li>
       {{#if (eq user.role 'admin')}}
         <li><a href="/admin/dashboard" class="btn btn-admin">Panel de Administración</a></li>
       {{/if}}

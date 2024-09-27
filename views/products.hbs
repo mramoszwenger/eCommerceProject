@@ -1,53 +1,59 @@
-<h2>Nuestros Productos</h2>
+<div>
+  <h2 class="section-title">Nuestros Productos</h2>
 
-<form id="filter-form" action="/products" method="GET">
-  <label for="query">Buscar:</label>
-  <input type="text" id="query" name="query" value="{{query}}" placeholder="Categoría, título o descripción">
+  <form id="filter-form" action="/products" method="GET">
+    <label for="query">Buscar:</label>
+    <input type="text" id="query" name="query" value="{{query}}" placeholder="Categoría, título o descripción">
 
-  <label for="sort">Ordenar por precio:</label>
-  <select id="sort" name="sort">
-    <option value="">Sin orden</option>
-    <option value="asc" {{#if (eq sort 'asc')}}selected{{/if}}>Ascendente</option>
-    <option value="desc" {{#if (eq sort 'desc')}}selected{{/if}}>Descendente</option>
-  </select>
+    <label for="sort">Ordenar por precio:</label>
+    <select id="sort" name="sort">
+      <option value="">Sin orden</option>
+      <option value="asc" {{#if (eq sort 'asc')}}selected{{/if}}>Ascendente</option>
+      <option value="desc" {{#if (eq sort 'desc')}}selected{{/if}}>Descendente</option>
+    </select>
 
-  <label for="limit">Productos por página:</label>
-  <input type="number" id="limit" name="limit" value="{{limit}}" min="1">
+    <label for="limit">Productos por página:</label>
+    <input type="number" id="limit" name="limit" value="{{limit}}" min="1">
 
-  <button type="submit">Aplicar Filtros</button>
-</form>
+    <button type="submit" class="btn">Aplicar Filtros</button>
+  </form>
 
-<div id="product-grid" class="product-grid">
-  {{#each products}}
-    <div class="product-card">
-      <img src="{{this.image}}" alt="{{this.title}}">
-      <h3>{{this.title}}</h3>
-      <p>{{this.description}}</p>
-      <p>Precio: ${{this.price}}</p>
-      <p>Categoría: {{this.category}}</p>
-      <p>Stock: {{this.stock}}</p>
-      <a href="/products/{{this.id}}" class="btn">Ver detalles</a>
-      <form onsubmit="addToCart(event, '{{this.id}}', {{this.stock}})">
-        <label for="quantity-{{this.id}}">Cantidad:</label>
-        <input type="number" id="quantity-{{this.id}}" name="quantity" value="1" min="1" max="{{this.stock}}">
-        <button type="submit">Agregar al Carrito</button>
-      </form>
-    </div>
-  {{else}}
-    <p>No se encontraron productos.</p>
-  {{/each}}
-</div>
+  <div id="product-grid" class="product-grid">
+    {{#each products}}
+      <div class="product-card">
+        <div class="product-image">
+          <img src="{{this.image}}" alt="{{this.title}}">
+        </div>
+        <div class="product-info">
+          <h3 class="product-title">{{this.title}}</h3>
+          <p class="product-description">{{this.description}}</p>
+          <p class="product-price">Precio: ${{this.price}}</p>
+          <p class="product-category">Categoría: {{this.category}}</p>
+          <p class="product-stock">Stock: {{this.stock}}</p>
+          <a href="/products/{{this.id}}" class="btn view-details-btn">Ver detalles</a>
+          <form onsubmit="addToCart(event, '{{this.id}}', {{this.stock}})">
+            <label for="quantity-{{this.id}}">Cantidad:</label>
+            <input type="number" id="quantity-{{this.id}}" name="quantity" value="1" min="1" max="{{this.stock}}">
+            <button type="submit" class="btn view-details-btn">Agregar al Carrito</button>
+          </form>
+        </div>
+      </div>
+    {{else}}
+      <p class="message">No se encontraron productos.</p>
+    {{/each}}
+  </div>
 
-<div id="pagination">
-  {{#if hasPrevPage}}
-    <a href="{{prevLink}}" class="btn">Anterior</a>
-  {{/if}}
+  <div id="pagination">
+    {{#if hasPrevPage}}
+      <a href="{{prevLink}}" class="btn">Anterior</a>
+    {{/if}}
 
-  <span>Página {{page}} de {{totalPages}}</span>
+    <span>Página {{page}} de {{totalPages}}</span>
 
-  {{#if hasNextPage}}
-    <a href="{{nextLink}}" class="btn">Siguiente</a>
-  {{/if}}
+    {{#if hasNextPage}}
+      <a href="{{nextLink}}" class="btn">Siguiente</a>
+    {{/if}}
+  </div>
 </div>
 
 <script>

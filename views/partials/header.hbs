@@ -1,28 +1,35 @@
-<header>
+<header class="main-header">
     <nav>
-        <a href="/">errezeta Shop</a>
-        <a href="/products">Productos</a>
-        {{#if isAuthenticated}}
-            {{#if user.firstName}}
-                <span>Hola, {{user.firstName}}</span>
-            {{/if}}
-            <a href="/profile">Mi Perfil</a>
-            {{#if user.role}}
-                {{#if (eq user.role 'admin')}}
-                    <a href="/admin">Panel de Administración</a>
-                {{/if}}
-            {{/if}}
-            {{#if activeCart}}
-                <a href="/carts/{{activeCart._id}}" class="btn">Ver Carrito</a>
+        <a href="/" class="logo">errezeta SHOP</a>
+        <div class="nav-links">
+            <a href="/products">Ver Productos</a>
+        </div>
+        <div class="user-actions">
+            {{#if isAuthenticated}}
+                <div class="dropdown">
+                    <button class="dropbtn" id="userMenuBtn">Hola, {{user.firstName}} <i class="fas fa-caret-down"></i></button>
+                    <div class="dropdown-content" id="userDropdown">
+                        <a href="/profile">Mi Perfil</a>
+                        {{#if user.role}}
+                            {{#if (eq user.role 'admin')}}
+                                <a href="/admin">Panel Administrador</a>
+                            {{/if}}
+                        {{/if}}
+                        <form action="/api/sessions/logout" method="POST">
+                            <button type="submit" class="logout-link">Cerrar Sesión</button>
+                        </form>
+                    </div>
+                </div>
+                <a href="/carts/{{activeCart._id}}" class="cart-icon {{#if activeCart.products.length}}has-items{{/if}}">
+                    <i class="fas fa-shopping-cart"></i>
+                    {{#if activeCart.products.length}}
+                        <span class="cart-count">{{activeCart.products.length}}</span>
+                    {{/if}}
+                </a>
             {{else}}
-                <span>Carrito no disponible</span>
+                <a href="/login" class="auth-btn">Iniciar Sesión</a>
+                <a href="/register" class="auth-btn">Crear Cuenta</a>
             {{/if}}
-            <form action="/api/sessions/logout" method="POST" style="display: inline;">
-                <button type="submit">Cerrar Sesión</button>
-            </form>
-        {{else}}
-            <a href="/login">Iniciar Sesión</a>
-            <a href="/register">Crear Cuenta</a>
-        {{/if}}
+        </div>
     </nav>
 </header>

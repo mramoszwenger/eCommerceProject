@@ -1,27 +1,28 @@
-<h1>{{title}}</h1>
+<div class="home-container">
+    <h1 class="main-title">TECNOLOGIA A TU ALCANCE</h1>
 
-<section>
-    <h2>Productos Destacados</h2>
-    <div id="featured-products" class="featured-products">
-        {{#each featuredProducts}}
-            <div class="product-card" data-id="{{this.id}}">
-                {{#if this.image}}
-                    <img src="/uploads/products/{{this.image}}" alt="{{this.title}}">
-                {{else}}
-                    <img src="/uploads/products/default-product.jpg" alt="Imagen no disponible">
-                {{/if}}
-                <h3>{{this.title}}</h3>
-                <p>${{this.price}}</p>
-                <a href="/products/{{this.id}}" class="btn">Ver Detalles</a>
-            </div>
-        {{/each}}
-    </div>
-</section>
-
-<section>
-    <h2>Sobre Nosotros</h2>
-    <p>Somos tu tienda en línea de confianza, ofreciendo los mejores productos al mejor precio.</p>
-</section>
+    <section class="featured-section">
+        <h2 class="section-title">Productos Destacados</h2>
+        <div id="featured-products" class="featured-products-grid">
+            {{#each featuredProducts}}
+                <div class="product-card" data-id="{{this.id}}">
+                    <div class="product-image">
+                        {{#if this.image}}
+                            <img src="/uploads/products/{{this.image}}" alt="{{this.title}}">
+                        {{else}}
+                            <img src="/uploads/products/default-product.jpg" alt="Imagen no disponible">
+                        {{/if}}
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">{{this.title}}</h3>
+                        <p class="product-price">${{this.price}}</p>
+                        <a href="/products/{{this.id}}" class="btn view-details-btn">Ver Detalles</a>
+                    </div>
+                </div>
+            {{/each}}
+        </div>
+    </section>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -36,10 +37,14 @@
         newProductElement.className = 'product-card';
         newProductElement.setAttribute('data-id', newProduct._id);
         newProductElement.innerHTML = `
-            <img src="/uploads/products/${newProduct.image || 'default-product.jpg'}" alt="${newProduct.title}">
-            <h3>${newProduct.title}</h3>
-            <p>$${newProduct.price}</p>
-            <a href="/products/${newProduct._id}" class="btn">Ver Detalles</a>
+            <div class="product-image">
+                <img src="/uploads/products/${newProduct.image || 'default-product.jpg'}" alt="${newProduct.title}">
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">${newProduct.title}</h3>
+                <p class="product-price">$${newProduct.price}</p>
+                <a href="/products/${newProduct._id}" class="btn view-details-btn">Ver Detalles</a>
+            </div>
         `;
 
         // Insertar el nuevo producto al principio
@@ -55,10 +60,14 @@
         const productElement = document.querySelector(`.product-card[data-id="${updatedProduct._id}"]`);
         if (productElement) {
             productElement.innerHTML = `
-                <img src="/uploads/products/${updatedProduct.image || 'default-product.jpg'}" alt="${updatedProduct.title}">
-                <h3>${updatedProduct.title}</h3>
-                <p>$${updatedProduct.price}</p>
-                <a href="/products/${updatedProduct._id}" class="btn">Ver Detalles</a>
+                <div class="product-image">
+                    <img src="/uploads/products/${updatedProduct.image || 'default-product.jpg'}" alt="${updatedProduct.title}">
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title">${updatedProduct.title}</h3>
+                    <p class="product-price">$${updatedProduct.price}</p>
+                    <a href="/products/${updatedProduct._id}" class="btn view-details-btn">Ver Detalles</a>
+                </div>
             `;
         }
     });

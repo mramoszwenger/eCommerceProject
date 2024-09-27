@@ -12,8 +12,8 @@
                     <a href="/admin">Panel de Administración</a>
                 {{/if}}
             {{/if}}
-            {{#if user.cartId}}
-                <a href="/carts/{{user.cartId}}">Mi Carrito</a>
+            {{#if activeCart}}
+                <a href="/carts/{{activeCart._id}}" class="btn">Ver Carrito</a>
             {{else}}
                 <span>Carrito no disponible</span>
             {{/if}}

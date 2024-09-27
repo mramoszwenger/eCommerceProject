@@ -1,4 +1,14 @@
 import UserDTO from '../dtos/userDTO.js';
+import { daoFactory } from '../factories/factory.js';
+
+let cartManager;
+
+const initializeCartManager = async () => {
+  const { CartDao } = await daoFactory.initializeDaos();
+  cartManager = CartDao;
+};
+
+initializeCartManager();
 
 export const isAuthenticated = (request, response, next) => {
   if (request.session && request.session.user && request.session.user.id) {
@@ -23,16 +33,24 @@ export const requireRole = (role) => {
   };
 };
 
-// Middleware actualizado para la estrategia "current"
-export const getCurrentUser = (request, response, next) => {
+export const getCurrentUser = async (request, response, next) => {
   if (request.session && request.session.user) {
     const currentUser = new UserDTO(request.session.user);
     response.locals.currentUser = currentUser;
     response.locals.isAuthenticated = true;
+
+    try {
+      const activeCart = await cartManager.getActiveCartByUserId(request.session.user.id);
+      response.locals.activeCart = activeCart;
+    } catch (error) {
+      console.error('Error al obtener el carrito activo:', error);
+      response.locals.activeCart = null;
+    }
   } else {
     response.locals.currentUser = null;
     response.locals.isAuthenticated = false;
+    response.locals.activeCart = null;
   }
-  response.locals.user = response.locals.currentUser; // Para mantener compatibilidad
+  response.locals.user = response.locals.currentUser;
   next();
 };

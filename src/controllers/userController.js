@@ -151,7 +151,8 @@ class UserController {
         user,
         userProducts,
         userTickets,
-        activeCart
+        activeCart,
+        isAuthenticated: true
       });
     } catch (error) {
       console.error('Error al cargar el perfil de usuario:', error);

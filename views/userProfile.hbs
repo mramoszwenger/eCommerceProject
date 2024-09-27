@@ -40,14 +40,13 @@
 
   <section class="user-purchases card">
     <h2>Mis Compras Finalizadas</h2>
-    {{log userTickets}}
+    {{log 'User Tickets:' userTickets}}
     {{#if userTickets.length}}
       <ul class="purchase-list">
         {{#each userTickets}}
           <li>
-            <a href="/tickets/{{this._id}}">Ticket #{{this.code}}</a>
-            <span class="purchase-date">{{formatDate this.purchase_datetime}}</span>
-            <span class="purchase-amount">${{formatPrice this.amount}}</span>
+            <span class="ticket-id">Ticket ID: {{this._id}}</span>
+            <span class="purchase-date">Fecha: {{formatDate this.purchase_datetime}}</span>
           </li>
         {{/each}}
       </ul>

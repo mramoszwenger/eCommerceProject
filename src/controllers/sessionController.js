@@ -1,3 +1,4 @@
+import passport from 'passport';
 import { daoFactory } from '../factories/factory.js';
 import { config } from '../config/config.js';
 import { Cart } from '../models/cartModel.js';
@@ -12,87 +13,120 @@ class SessionController {
     this.userManager = UserDao;
   }
 
-  login = async (request, response) => {
-    try {
-      const { email, password } = request.body;
-      const user = await this.userManager.validateUser(email, password);
-      if (user) {
-        // Buscar o crear un carrito para el usuario
+  login = (request, response, next) => {
+    passport.authenticate('local-login', (err, user, info) => {
+      if (err) {
+        return next(err);
+      }
+      if (!user) {
+        return response.status(401).json({ status: 'error', message: info.message });
+      }
+      request.logIn(user, async (err) => {
+        if (err) {
+          return next(err);
+        }
         let cart = await Cart.findOne({ user: user._id });
         if (!cart) {
           cart = await Cart.create({ user: user._id });
         }
-
         request.session.user = {
           id: user._id.toString(),
           firstName: user.firstName || '',
           lastName: user.lastName || '',
           email: user.email,
           role: user.role,
-          cartId: cart._id.toString() // Añadir el cartId a la sesión
+          cartId: cart._id.toString()
         };
-        console.log('Session user establecido:', request.session.user);
-        response.json({ status: 'success', message: 'Login successful', redirectUrl: '/profile' });
-      } else {
-        response.status(401).json({ status: 'error', message: 'Invalid credentials' });
-      }
-    } catch (error) {
-      console.error('Error en el login:', error);
-      response.status(500).json({ status: 'error', message: error.message });
-    }
+        return response.json({ status: 'success', message: 'Login successful', redirectUrl: '/profile' });
+      });
+    })(request, response, next);
   }
 
-  register = async (request, response) => {
-    try {
-      const { firstName, lastName, email, password, confirmPassword } = request.body;
-      
-      if (password !== confirmPassword) {
-        return response.status(400).json({ status: 'error', message: 'Las contraseñas no coinciden' });
+  register = (request, response, next) => {
+    passport.authenticate('local-register', async (err, user, info) => {
+      if (err) {
+        return next(err);
       }
-
-      const newUser = await this.userManager.addUser({ firstName, lastName, email, password });
-      
-      // Crear un nuevo carrito para el usuario registrado
-      const cart = await Cart.create({ user: newUser.id });
-
-      request.session.user = {
-        id: newUser.id,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        email: newUser.email,
-        role: newUser.role,
-        cartId: cart._id.toString() // Añadir el cartId a la sesión
-      };
-      response.status(201).json({ status: 'success', message: 'Usuario registrado con éxito', redirectUrl: '/profile' });
-    } catch (error) {
-      console.error('Error en el registro:', error);
-      response.status(400).json({ status: 'error', message: error.message });
-    }
+      if (!user) {
+        return response.status(400).json({ status: 'error', message: info.message });
+      }
+      request.logIn(user, async (err) => {
+        if (err) {
+          return next(err);
+        }
+        const cart = await Cart.create({ user: user._id });
+        request.session.user = {
+          id: user._id.toString(),
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          cartId: cart._id.toString()
+        };
+        return response.status(201).json({ status: 'success', message: 'Usuario registrado con éxito', redirectUrl: '/profile' });
+      });
+    })(request, response, next);
   }
 
   logout = (request, response) => {
-    request.session.destroy((err) => {
+    request.logout((err) => {
       if (err) {
         console.error('Error al cerrar sesión:', err);
         return response.status(500).json({ status: 'error', message: 'Error al cerrar sesión' });
       }
-      response.json({ status: 'success', message: 'Sesión cerrada exitosamente', redirectUrl: '/login' });
+      request.session.destroy((err) => {
+        if (err) {
+          console.error('Error al destruir la sesión:', err);
+        }
+        response.json({ status: 'success', message: 'Sesión cerrada exitosamente', redirectUrl: '/login' });
+      });
     });
   }
 
   getCurrentUser = (request, response) => {
-    if (request.session.user) {
-      response.json({ status: 'success', user: request.session.user });
+    if (request.user) {
+      response.json({ status: 'success', user: request.user });
     } else {
       response.status(401).json({ status: 'error', message: 'No hay usuario autenticado' });
     }
   }
 
-  configuresponseession = (request, response, next) => {
+  configureSession = (request, response, next) => {
     if (request.session) {
       request.session.cookie.maxAge = config.SESSION_DURATION || 3600000; // 1 hora por defecto
     }
     next();
+  }
+
+  githubAuth = passport.authenticate('github', { scope: ['user:email'] });
+
+  githubAuthCallback = (request, response, next) => {
+    passport.authenticate('github', async (err, user) => {
+      if (err) {
+        return next(err);
+      }
+      if (!user) {
+        return response.redirect('/login');
+      }
+      request.logIn(user, async (err) => {
+        if (err) {
+          return next(err);
+        }
+        let cart = await Cart.findOne({ user: user._id });
+        if (!cart) {
+          cart = await Cart.create({ user: user._id });
+        }
+        request.session.user = {
+          id: user._id.toString(),
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email,
+          role: user.role,
+          cartId: cart._id.toString()
+        };
+        return response.redirect('/profile');
+      });
+    })(request, response, next);
   }
 }
 

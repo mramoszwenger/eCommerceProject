@@ -8,20 +8,21 @@
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 
-<body>
-    
-    {{> header}}
-    
-    <main>
-        {{#if messages.error}}
-            <div class="error-message">{{messages.error}}</div>
-        {{/if}}
-        {{#if messages.success}}
-            <div class="success-message">{{messages.success}}</div>
-        {{/if}}
+<body class="site-body">
+    <div class="site-content">
+        {{> header}}
         
-        {{{body}}}
-    </main>
+        <main>
+            {{#if messages.error}}
+                <div class="error-message">{{messages.error}}</div>
+            {{/if}}
+            {{#if messages.success}}
+                <div class="success-message">{{messages.success}}</div>
+            {{/if}}
+            
+            {{{body}}}
+        </main>
+    </div>
     
     {{> footer}}
     

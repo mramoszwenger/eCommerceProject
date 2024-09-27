@@ -2,17 +2,18 @@ import { daoFactory } from '../factories/factory.js';
 import { config } from '../config/config.js';
 import path from 'path';
 import { getIO } from '../services/websocket.js';
+import ProductRepository from '../repositories/productRepository.js';
 
 class ProductController {
   constructor() {
-    this.productManager = null;
+    this.productRepository = null;
     this.defaultImagePath = config.DEFAULT_IMAGE_PATH;
     this.uploadsPath = config.UPLOAD_PATH;
   }
 
   async initialize() {
     const { ProductDao } = await daoFactory.initializeDaos();
-    this.productManager = ProductDao;
+    this.productRepository = ProductRepository(ProductDao);
   }
 
   getAllProducts = async (request, response) => {
@@ -26,7 +27,7 @@ class ProductController {
         sort: sort ? { price: sort === 'asc' ? 1 : -1 } : {},
       };
 
-      const result = await this.productManager.getAllProducts(filters, options);
+      const result = await this.productRepository.getAllProducts(filters, options);
       if (!result?.docs) {
         return response.status(500).send('Error en los datos de productos');
       }
@@ -54,7 +55,7 @@ class ProductController {
   getProductById = async (request, response) => {
     try {
       const { pid } = request.params;
-      const product = await this.productManager.getProductById(pid);
+      const product = await this.productRepository.getProductById(pid);
       if (!product) {
         return response.status(404).json({ error: 'Producto no encontrado' });
       }
@@ -74,7 +75,7 @@ class ProductController {
       if (request.file) {
         productData.image = request.file.filename;
       }
-      const newProduct = await this.productManager.addProduct(productData);
+      const newProduct = await this.productRepository.addProduct(productData);
       
       getIO().emit('productAdded', {
         ...newProduct,
@@ -111,7 +112,7 @@ class ProductController {
         }
       }
 
-      const updatedProduct = await this.productManager.updateProduct(pid, updateData);
+      const updatedProduct = await this.productRepository.updateProduct(pid, updateData);
       
       if (!updatedProduct) {
         return response.status(404).json({ error: 'Producto no encontrado' });
@@ -132,7 +133,7 @@ class ProductController {
   deleteProduct = async (request, response) => {
     try {
       const { pid } = request.params;
-      const deletedProduct = await this.productManager.deleteProduct(pid);
+      const deletedProduct = await this.productRepository.deleteProduct(pid);
       if (!deletedProduct) {
         return response.status(404).json({ error: 'Producto no encontrado' });
       }
@@ -168,7 +169,7 @@ class ProductController {
         sort: sort ? { price: sort === 'asc' ? 1 : -1 } : {},
       };
   
-      const result = await this.productManager.getAllProducts(filters, options);
+      const result = await this.productRepository.getAllProducts(filters, options);
   
       if (!result?.docs) {
         return response.status(500).send('Error en los datos de productos');
@@ -176,20 +177,12 @@ class ProductController {
   
       const { docs, totalPages, hasPrevPage, hasNextPage, prevPage, nextPage } = result;
   
-      const productsToRender = docs.map(product => {
-        let imagePath;
-        if (product.image) {
-          imagePath = `/uploads/products/${product.image}`;
-        } else if (product.thumbnail) {
-          imagePath = product.thumbnail;
-        } else {
-          imagePath = this.defaultImagePath.replace(this.uploadsPath, '/uploads');
-        }
-        return {
-          ...product,
-          image: imagePath
-        };
-      });
+      const productsToRender = docs.map(product => ({
+        ...product,
+        image: product.image ? `/uploads/products/${product.image}` : 
+               product.thumbnail ? product.thumbnail :
+               this.defaultImagePath.replace(this.uploadsPath, '/uploads')
+      }));
   
       response.render('products', {
         title: 'Nuestros Productos',
@@ -216,33 +209,23 @@ class ProductController {
   renderProductDetail = async (request, response) => {
     try {
       const { pid } = request.params;
-      const product = await this.productManager.getProductById(pid);
+      const product = await this.productRepository.getProductById(pid);
       console.log('Producto obtenido:', product);
 
       if (!product) {
         return response.status(404).render('error', { error: 'Producto no encontrado' });
       }
 
-      let imagePath;
-      if (product.image) {
-        imagePath = `/uploads/products/${product.image}`;
-      } else if (product.thumbnail) {
-        imagePath = product.thumbnail;
-      } else {
-        imagePath = this.defaultImagePath.replace(this.uploadsPath, '/uploads');
-      }
+      const imagePath = product.image ? `/uploads/products/${product.image}` : 
+                        product.thumbnail ? product.thumbnail :
+                        this.defaultImagePath.replace(this.uploadsPath, '/uploads');
 
       console.log('Ruta de la imagen:', imagePath);
 
       response.render('productDetail', { 
         title: product.title, 
         product: {
-          _id: product._id.toString(),
-          title: product.title,
-          description: product.description,
-          price: product.price,
-          category: product.category,
-          stock: product.stock,
+          ...product,
           image: imagePath
         },
         cartId: request.session.user?.cartId

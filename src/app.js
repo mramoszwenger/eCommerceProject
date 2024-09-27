@@ -9,6 +9,7 @@ import cartsRouter from './routes/api/cartRoutes.js';
 import usersRouter from './routes/api/userRoutes.js';
 import sessionRouter from './routes/api/sessionRoutes.js';
 import { initializeSocket } from './services/websocket.js';
+import passport from './config/passport.js';
 import { config } from './config/config.js';
 import { daoFactory } from './factories/factory.js';
 import userController from './controllers/userController.js';
@@ -16,6 +17,7 @@ import sessionController from './controllers/sessionController.js';
 import productController from './controllers/productController.js';
 import cartController from './controllers/cartController.js';
 import MongoStore from 'connect-mongo';
+import { getCurrentUser } from './middlewares/auth.js';
 
 async function startServer() {
 	const app = express();
@@ -49,13 +51,16 @@ async function startServer() {
 		}
 	}));
 
+	// Inicialización de Passport
+	app.use(passport.initialize());
+	app.use(passport.session());
+
 	// Middleware para mensajes flash
 	app.use(flash());
 
-	// Middleware para establecer variables locales
+	// Middleware para establecer variables locales y obtener el usuario actual
+	app.use(getCurrentUser);
 	app.use((request, response, next) => {
-		response.locals.isAuthenticated = request.session.userId != null;
-		response.locals.user = request.session.user || null;
 		response.locals.messages = request.flash();
 		next();
 	});

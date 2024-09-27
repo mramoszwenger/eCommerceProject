@@ -20,7 +20,7 @@ class CartManager {
         }
     }
 
-    getCart = async (cid) => {
+    getCartById = async (cid) => {
         try {
             const carts = await this.getCarts();
             return carts.find(cart => cart.cid === cid) || null;
@@ -34,7 +34,13 @@ class CartManager {
         try {
             const carts = await this.getCarts();
             const cid = Date.now().toString();
-            const newCart = { cid, products: [], user: cartData.user };
+            const newCart = { 
+                cid, 
+                products: [], 
+                user: cartData.user,
+                status: 'active',
+                createdAt: new Date()
+            };
             carts.push(newCart);
             await fs.promises.writeFile(this.path, JSON.stringify(carts, null, 2));
             return newCart;
@@ -63,6 +69,18 @@ class CartManager {
         } catch (error) {
             console.error('Error al agregar producto al carrito:', error);
             throw error;
+        }
+    }
+
+    getActiveCartByUserId = async (userId) => {
+        try {
+            const carts = await this.getCarts();
+            return carts
+                .filter(cart => cart.user === userId && cart.status === 'active')
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0] || null;
+        } catch (error) {
+            console.error('Error al obtener el carrito activo del usuario:', error);
+            return null;
         }
     }
 }

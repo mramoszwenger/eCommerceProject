@@ -1,5 +1,6 @@
 import express from 'express';
 import cartController from '../../controllers/cartController.js';
+import ticketController from '../../controllers/ticketController.js';
 import { isAuthenticated } from '../../middlewares/auth.js';
 
 const router = express.Router();
@@ -25,4 +26,6 @@ router.put('/:cid/products/:pid', isAuthenticated, cartController.updateProductQ
 // Eliminar todos los productos del carrito
 router.delete('/:cid', isAuthenticated, cartController.clearCart);
 
+//Finalizar el proceso de compra
+router.post('/:cid/purchase', isAuthenticated, ticketController.createTicket);
 export default router;

@@ -7,6 +7,7 @@ class DaoFactory {
     this.CartDao = null;
     this.UserDao = null;
     this.MessageDao = null;
+    this.TicketDao = null;
     this.initializationPromise = null;
   }
 
@@ -16,13 +17,14 @@ class DaoFactory {
     }
 
     this.initializationPromise = (async () => {
-      if (this.ProductDao && this.CartDao && this.UserDao && this.MessageDao) {
+      if (this.ProductDao && this.CartDao && this.UserDao && this.MessageDao && this.TicketDao) {
         console.log('DAOs already initialized');
         return { 
           ProductDao: this.ProductDao, 
           CartDao: this.CartDao, 
           UserDao: this.UserDao,
-          MessageDao: this.MessageDao
+          MessageDao: this.MessageDao,
+          TicketDao: this.TicketDao
         };
       }
 
@@ -32,7 +34,7 @@ class DaoFactory {
 
       switch (config.PERSISTENCE) {
         case "MEMORY": {
-          // Implementar DAOs en memoria si es necesario
+          // Implementar DAOs en memoria si lo llegamoramos a necesitar
           throw new Error('Persistence type MEMORY not implemented yet');
         }
 
@@ -40,10 +42,12 @@ class DaoFactory {
           const { default: ProductManager } = await import('../daos/fs/productDaoFS.js');
           const { default: CartManager } = await import('../daos/fs/cartDaoFS.js');
           const { default: UserManager } = await import('../daos/fs/userDaoFS.js');
+          const { default: TicketDaoFS } = await import('../daos/fs/ticketDaoFS.js');
 
           this.ProductDao = new ProductManager();
           this.CartDao = new CartManager();
           this.UserDao = new UserManager();
+          this.TicketDao = new TicketDaoFS();
           break;
         }
 
@@ -52,11 +56,13 @@ class DaoFactory {
           const { default: CartDaoMongo } = await import("../daos/mongo/cartDaoMongo.js");
           const { default: UserDaoMongo } = await import("../daos/mongo/userDaoMongo.js");
           const { default: MessageDaoMongo } = await import("../daos/mongo/messageDaoMongo.js");
+          const { default: TicketDaoMongo } = await import("../daos/mongo/ticketDaoMongo.js");
 
           this.ProductDao = new ProductDaoMongo();
           this.CartDao = new CartDaoMongo();
           this.UserDao = new UserDaoMongo();
           this.MessageDao = new MessageDaoMongo();
+          this.TicketDao = new TicketDaoMongo();
           break;
         }
 
@@ -71,7 +77,8 @@ class DaoFactory {
         ProductDao: this.ProductDao, 
         CartDao: this.CartDao, 
         UserDao: this.UserDao,
-        MessageDao: this.MessageDao
+        MessageDao: this.MessageDao,
+        TicketDao: this.TicketDao
       };
     })();
 

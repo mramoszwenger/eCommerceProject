@@ -4,6 +4,7 @@ import cartRoutes from './cartRoutes.js';
 import userRoutes from './userRoutes.js';
 import sessionRoutes from './sessionRoutes.js';
 import messageRoutes from './messageRoutes.js';
+import ticketRoutes from './ticketRoutes.js';
 
 const router = express.Router();
 
@@ -21,5 +22,8 @@ router.use('/sessions', sessionRoutes);
 
 // Rutas de mensajes
 router.use('/messages', messageRoutes);
+
+// Rutas de tickets
+router.use('/tickets', ticketRoutes);
 
 export default router;

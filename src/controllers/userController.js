@@ -1,22 +1,25 @@
+import UserRepository from '../repositories/userRepository.js';
 import { daoFactory } from '../factories/factory.js';
 
 class UserController {
   constructor() {
-    this.userManager = null;
+    this.userRepository = null;
     this.productManager = null;
     this.cartManager = null;
+    this.ticketManager = null;
   }
 
   async initialize() {
-    const { UserDao, ProductDao, CartDao } = await daoFactory.initializeDaos();
-    this.userManager = UserDao;
+    const { UserDao, ProductDao, CartDao, TicketDao } = await daoFactory.initializeDaos();
+    this.userRepository = UserRepository(UserDao);
     this.productManager = ProductDao;
     this.cartManager = CartDao;
+    this.ticketManager = TicketDao;
   }
 
   getAllUsers = async (request, response) => {
     try {
-      const users = await this.userManager.getAllUsers();
+      const users = await this.userRepository.getAllUsers();
       response.json(users);
     } catch (error) {
       console.error('Error al obtener los usuarios:', error);
@@ -27,7 +30,7 @@ class UserController {
   getUserById = async (request, response) => {
     const uid = request.params.uid;
     try {
-      const user = await this.userManager.getUserById(uid);
+      const user = await this.userRepository.getUserById(uid);
       response.json(user);
     } catch (error) {
       console.error('Error al obtener usuario por UID:', error);
@@ -41,7 +44,7 @@ class UserController {
 
   addUser = async (request, response) => {
     try {
-      const newUser = await this.userManager.addUser(request.body);
+      const newUser = await this.userRepository.addUser(request.body);
       response.status(201).json(newUser);
     } catch (error) {
       console.error('Error al agregar el usuario:', error);
@@ -52,7 +55,7 @@ class UserController {
   updateUser = async (request, response) => {
     const uid = request.params.uid;
     try {
-      const updatedUser = await this.userManager.updateUser(uid, request.body);
+      const updatedUser = await this.userRepository.updateUser(uid, request.body);
       response.json(updatedUser);
     } catch (error) {
       console.error('Error al actualizar el usuario:', error);
@@ -67,7 +70,7 @@ class UserController {
   deleteUser = async (request, response) => {
     const uid = request.params.uid;
     try {
-      const deletedUser = await this.userManager.deleteUser(uid);
+      const deletedUser = await this.userRepository.deleteUser(uid);
       response.json(deletedUser);
     } catch (error) {
       console.error('Error al eliminar el usuario:', error);
@@ -84,7 +87,7 @@ class UserController {
       const { email, password } = request.body;
       console.log('Intento de login:', { email, password: '****' });
       
-      const user = await this.userManager.validateUser(email, password);
+      const user = await this.userRepository.validateUser(email, password);
       if (!user) {
         throw new Error('Credenciales inválidas');
       }
@@ -126,26 +129,29 @@ class UserController {
         return response.status(401).redirect('/login');
       }
 
-      const user = await this.userManager.getUserById(userId);
+      const user = await this.userRepository.getUserById(userId);
       const userProducts = await this.productManager.getProductsByUserId(userId);
-      const userCarts = await this.cartManager.getCartsByUserId(userId);
+      
+      // Obtener tickets finalizados
+      const userTickets = await this.ticketManager.getTicketsByUserId(userId);
+      
+      // Obtener el carrito activo
+      const activeCart = await this.cartManager.getActiveCartByUserId(userId);
       
       if (!user) {
         console.log('Usuario no encontrado para el ID:', userId);
         return response.status(404).render('error', { error: 'Usuario no encontrado' });
       }
 
+      console.log('User Tickets:', userTickets);
+      console.log('Active Cart:', activeCart);
+
       response.render('userProfile', { 
         title: 'Mi Perfil', 
-        user: {
-          id: user._id.toString(),
-          firstName: user.firstName || '',
-          lastName: user.lastName || '',
-          email: user.email,
-          role: user.role
-        },
+        user,
         userProducts,
-        userCarts
+        userTickets,
+        activeCart
       });
     } catch (error) {
       console.error('Error al cargar el perfil de usuario:', error);

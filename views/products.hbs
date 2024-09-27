@@ -26,10 +26,10 @@
       <p>Precio: ${{this.price}}</p>
       <p>Categoría: {{this.category}}</p>
       <p>Stock: {{this.stock}}</p>
-      <a href="/products/{{this._id}}" class="btn">Ver detalles</a>
-      <form onsubmit="addToCart(event, '{{this._id}}', {{this.stock}})">
-        <label for="quantity-{{this._id}}">Cantidad:</label>
-        <input type="number" id="quantity-{{this._id}}" name="quantity" value="1" min="1" max="{{this.stock}}">
+      <a href="/products/{{this.id}}" class="btn">Ver detalles</a>
+      <form onsubmit="addToCart(event, '{{this.id}}', {{this.stock}})">
+        <label for="quantity-{{this.id}}">Cantidad:</label>
+        <input type="number" id="quantity-{{this.id}}" name="quantity" value="1" min="1" max="{{this.stock}}">
         <button type="submit">Agregar al Carrito</button>
       </form>
     </div>

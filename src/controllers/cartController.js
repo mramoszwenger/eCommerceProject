@@ -1,21 +1,21 @@
 import mongoose from 'mongoose';
 import { daoFactory } from '../factories/factory.js';
-import { config } from '../config/config.js';
+import CartRepository from '../repositories/cartRepository.js';
 
 class CartController {
   constructor() {
-    this.cartManager = null;
+    this.cartRepository = null;
   }
 
   initialize = async () => {
     const { CartDao } = await daoFactory.initializeDaos();
-    this.cartManager = CartDao;
+    this.cartRepository = CartRepository(CartDao);
   }
 
   getCart = async (request, response) => {
     try {
       const { cid } = request.params;
-      const cart = await this.cartManager.getCart(cid);
+      const cart = await this.cartRepository.getCart(cid);
       if (!cart) {
         return response.status(404).json({ error: 'Carrito no encontrado' });
       }
@@ -29,7 +29,7 @@ class CartController {
   createCart = async (request, response) => {
     try {
       const userId = request.session.user.id;
-      const newCart = await this.cartManager.createCart({ user: userId });
+      const newCart = await this.cartRepository.createCart({ user: userId });
       response.status(201).json(newCart);
     } catch (error) {
       console.error('Error al crear el carrito:', error);
@@ -41,15 +41,16 @@ class CartController {
     try {
       const { cid, pid } = request.params;
       const { quantity = 1 } = request.body;
-      // Asegúrate de que quantity sea un número
-      const cart = await this.cartManager.addProductToCart(cid, pid, parseInt(quantity, 10));
+      console.log(`Intentando agregar producto ${pid} al carrito ${cid} con cantidad ${quantity}`);
+      const cart = await this.cartRepository.addProductToCart(cid, pid, parseInt(quantity, 10));
+      console.log('Carrito actualizado:', JSON.stringify(cart, null, 2));
       response.json(cart);
     } catch (error) {
       console.error('Error al agregar producto al carrito:', error);
       if (error.message === 'Carrito no encontrado') {
         return response.status(404).json({ error: 'Carrito no encontrado' });
       }
-      response.status(500).json({ error: 'Error al agregar producto al carrito' });
+      response.status(500).json({ error: 'Error al agregar producto al carrito', details: error.message });
     }
   }
 
@@ -58,7 +59,7 @@ class CartController {
       const { cid, pid } = request.params;
       console.log(`Intentando eliminar producto ${pid} del carrito ${cid}`);
       
-      const updatedCart = await this.cartManager.removeProductFromCart(cid, pid);
+      const updatedCart = await this.cartRepository.removeProductFromCart(cid, pid);
       
       console.log('Carrito actualizado:', updatedCart);
       response.json({ success: true, cart: updatedCart });
@@ -75,7 +76,7 @@ class CartController {
     try {
       const { cid } = request.params;
       const { products } = request.body;
-      const cart = await this.cartManager.updateCart(cid, products);
+      const cart = await this.cartRepository.updateCart(cid, products);
       response.json(cart);
     } catch (error) {
       console.error('Error al actualizar el carrito:', error);
@@ -90,7 +91,7 @@ class CartController {
     try {
       const { cid, pid } = request.params;
       const { quantity } = request.body;
-      const cart = await this.cartManager.updateProductQuantity(cid, pid, parseInt(quantity, 10));
+      const cart = await this.cartRepository.updateProductQuantity(cid, pid, parseInt(quantity, 10), false);
       response.json({ success: true, cart });
     } catch (error) {
       console.error('Error al actualizar la cantidad del producto:', error);
@@ -105,7 +106,7 @@ class CartController {
     try {
       const { cid } = request.params;
       console.log(`Intentando vaciar el carrito: ${cid}`);
-      const cart = await this.cartManager.clearCart(cid);
+      const cart = await this.cartRepository.clearCart(cid);
       console.log('Carrito vaciado:', cart);
       response.json({ success: true, cart });
     } catch (error) {
@@ -125,17 +126,14 @@ class CartController {
         return response.status(400).render('error', { error: 'ID de carrito inválido' });
       }
   
-      const cart = await this.cartManager.getCart(cid);
+      const cart = await this.cartRepository.getCart(cid);
       if (!cart) {
         return response.status(404).render('error', { error: 'Carrito no encontrado' });
       }
       
-      // Asegúrate de que los productos estén poblados
-      await cart.populate('products.product');
-      
       response.render('cartDetail', { 
         title: 'Carrito de Compras',
-        cart: cart.toObject(),
+        cart,
         cartId: cid
       });
     } catch (error) {

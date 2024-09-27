@@ -31,7 +31,7 @@
     
     <button onclick="clearCart('{{cartId}}')" class="btn btn-danger">Vaciar carrito</button>
     
-    <a href="/checkout" class="btn btn-primary">Proceder al pago</a>
+    <button onclick="finalizePurchase('{{cartId}}')" class="btn btn-primary">Finalizar compra</button>
   {{else}}
     <p>El carrito está vacío.</p>
   {{/if}}
@@ -88,6 +88,33 @@ function clearCart(cartId) {
     .catch(error => {
       console.error('Error al vaciar el carrito:', error);
       alert('Error al vaciar el carrito');
+    });
+  }
+}
+
+function finalizePurchase(cartId) {
+  if (confirm('¿Estás seguro de que quieres finalizar la compra?')) {
+    fetch(`/api/carts/${cartId}/purchase`, {
+      method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        alert('Compra finalizada con éxito. Ticket creado: ' + data.ticket.code);
+        // Redirigir a una página de confirmación o al detalle del ticket
+        window.location.href = `/tickets/${data.ticket.id}`;
+      } else {
+        alert('Error al finalizar la compra: ' + data.message);
+        if (data.failedProducts && data.failedProducts.length > 0) {
+          alert('Los siguientes productos no pudieron ser procesados: ' + data.failedProducts.join(', '));
+        }
+        // Recargar la página para mostrar el carrito actualizado
+        window.location.reload();
+      }
+    })
+    .catch(error => {
+      console.error('Error al finalizar la compra:', error);
+      alert('Error al finalizar la compra');
     });
   }
 }

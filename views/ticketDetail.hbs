@@ -1,0 +1,46 @@
+<div class="ticket-container">
+  <div class="ticket-header">
+    <h1>Ticket de Compra</h1>
+    <p class="ticket-code">Código: {{ticket.code}}</p>
+  </div>
+  <div class="ticket-info">
+    <p><strong>Fecha de Compra:</strong> {{formatDate ticket.purchase_datetime}}</p>
+    <p><strong>Comprador:</strong> {{ticket.purchaser}}</p>
+  </div>
+  <div class="products-section">
+    <h2>Productos Comprados</h2>
+    <table class="product-table">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Precio Unitario</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each ticket.products}}
+          <tr>
+            <td>{{this.product.title}}</td>
+            <td>{{this.quantity}}</td>
+            <td>${{formatPrice this.product.price}}</td>
+            <td>${{formatPrice (multiply this.quantity this.product.price)}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  <div class="ticket-total">
+    <p><strong>Total:</strong> ${{formatPrice ticket.amount}}</p>
+  </div>
+  {{#if failedProducts.length}}
+    <div class="failed-products">
+      <h2>Productos No Procesados</h2>
+      <ul>
+        {{#each failedProducts}}
+          <li>{{this.title}} - No hay suficiente stock</li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+</div>

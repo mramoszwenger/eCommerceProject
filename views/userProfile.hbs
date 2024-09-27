@@ -1,46 +1,69 @@
-<h1>Perfil de Usuario</h1>
+<div class="user-profile container">
+  <h1 class="page-title">Perfil de Usuario</h1>
 
-<div class="user-info">
-  <p><strong>Nombre:</strong> 
-    {{#if user.firstName}}{{user.firstName}}{{else}}No especificado{{/if}}
-    {{#if user.lastName}}{{user.lastName}}{{else}}{{/if}}
-  </p>
-  <p><strong>Email:</strong> {{user.email}}</p>
-  <p><strong>Rol:</strong> {{user.role}}</p>
+  <section class="user-info card">
+    <h2>Información Personal</h2>
+    <p><strong>Nombre:</strong> 
+      {{#if user.firstName}}{{user.firstName}}{{else}}No especificado{{/if}}
+      {{#if user.lastName}} {{user.lastName}}{{/if}}
+    </p>
+    <p><strong>Email:</strong> {{user.email}}</p>
+    <p><strong>Rol:</strong> {{user.role}}</p>
+  </section>
+
+  <section class="user-actions card">
+    <h2>Acciones</h2>
+    <ul class="action-list">
+      <li><a href="/products/add" class="btn">Agregar Nuevo Producto</a></li>
+      <li><a href="/products" class="btn">Ver Todos los Productos</a></li>
+      {{#if (eq user.role 'admin')}}
+        <li><a href="/admin/dashboard" class="btn btn-admin">Panel de Administración</a></li>
+      {{/if}}
+    </ul>
+  </section>
+
+  <section class="user-products card">
+    <h2>Mis Productos</h2>
+    {{#if userProducts.length}}
+      <ul class="product-list">
+        {{#each userProducts}}
+          <li>
+            <a href="/products/{{this.id}}">{{this.title}}</a>
+            <a href="/products/edit/{{this.id}}" class="btn btn-small">Editar</a>
+          </li>
+        {{/each}}
+      </ul>
+    {{else}}
+      <p class="empty-message">Aún no has agregado ningún producto.</p>
+    {{/if}}
+  </section>
+
+  <section class="user-purchases card">
+    <h2>Mis Compras Finalizadas</h2>
+    {{log userTickets}}
+    {{#if userTickets.length}}
+      <ul class="purchase-list">
+        {{#each userTickets}}
+          <li>
+            <a href="/tickets/{{this._id}}">Ticket #{{this.code}}</a>
+            <span class="purchase-date">{{formatDate this.purchase_datetime}}</span>
+            <span class="purchase-amount">${{formatPrice this.amount}}</span>
+          </li>
+        {{/each}}
+      </ul>
+    {{else}}
+      <p class="empty-message">No tienes compras finalizadas.</p>
+    {{/if}}
+  </section>
+
+  <section class="user-cart card">
+    <h2>Mi Carrito Pendiente</h2>
+    {{log 'Active Cart in view:' activeCart}}
+    {{#if activeCart}}
+      <p>Tienes un carrito activo con {{activeCart.products.length}} producto(s).</p>
+      <a href="/carts/{{activeCart.id}}" class="btn">Ver Carrito</a>
+    {{else}}
+      <p class="empty-message">No tienes un carrito pendiente.</p>
+    {{/if}}
+  </section>
 </div>
-
-<h2>Acciones</h2>
-<ul>
-  <li><a href="/products/add">Agregar Nuevo Producto</a></li>
-  <li><a href="/products">Ver Todos los Productos</a></li>
-  {{#if (eq user.role 'admin')}}
-    <li><a href="/admin/dashboard">Panel de Administración</a></li>
-  {{/if}}
-</ul>
-
-<h2>Mis Productos</h2>
-{{#if userProducts.length}}
-  <ul>
-    {{#each userProducts}}
-      <li>
-        <a href="/products/{{this.id}}">{{this.title}}</a>
-        <a href="/products/edit/{{this.id}}">Editar</a>
-      </li>
-    {{/each}}
-  </ul>
-{{else}}
-  <p>Aún no has agregado ningún producto.</p>
-{{/if}}
-
-<h2>Mis Compras</h2>
-{{#if userCarts.length}}
-  <ul>
-    {{#each userCarts}}
-      <li>
-        <a href="/carts/{{this.id}}">Carrito #{{this.id}}</a> - {{this.createdAt}}
-      </li>
-    {{/each}}
-  </ul>
-{{else}}
-  <p>No tienes carritos finalizados.</p>
-{{/if}}

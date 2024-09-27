@@ -21,5 +21,14 @@ export const handlebarsHelpers = {
   
   calculateTotal: (products) => {
     return products.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+  },
+
+  formatDate: (date) => {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   }
 };

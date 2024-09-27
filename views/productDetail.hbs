@@ -11,7 +11,7 @@
     <p>Categoría: {{product.category}}</p>
     <p>Descripción: {{product.description}}</p>
     <p>Stock: {{product.stock}}</p>
-    <form onsubmit="addToCart(event, '{{product._id}}', {{product.stock}})">
+    <form onsubmit="addToCart(event, '{{product.id}}', {{product.stock}})">
       <label for="quantity">Cantidad:</label>
       <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{product.stock}}">
       <button type="submit">Agregar al Carrito</button>

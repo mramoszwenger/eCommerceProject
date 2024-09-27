@@ -15,5 +15,8 @@ export const config = {
   CARTS_FILE_PATH: getDataFilePath('Carts.json'),
   USERS_FILE_PATH: getDataFilePath('Users.json'),
   MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/ecommerce_mrz',
-  PERSISTENCE: process.env.PERSISTENCE || 'MONGODB' // 'MONGODB' o 'FILESYSTEM'
+  PERSISTENCE: process.env.PERSISTENCE || 'MONGODB', // 'MONGODB' o 'FILESYSTEM'
+  GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+  GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+  GITHUB_CALLBACK_URL: process.env.GITHUB_CALLBACK_URL
 };

@@ -16,4 +16,8 @@ router.post('/logout', isAuthenticated, SessionController.logout);
 // Rutas de sesiones
 router.get('/current', isAuthenticated, SessionController.getCurrentUser);
 
+// Rutas de autenticación de GitHub
+router.get('/github', isNotAuthenticated, SessionController.githubAuth);
+router.get('/github/callback', isNotAuthenticated, SessionController.githubAuthCallback);
+
 export default router;

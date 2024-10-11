@@ -1,6 +1,7 @@
 import TicketRepository from '../repositories/ticketRepository.js';
 import { daoFactory } from '../factories/factory.js';
 import { formatDate, formatPrice } from '../utils/formatters.js';
+import { sendTicketEmail } from '../services/emailServices.js';
 
 class TicketController {
 	constructor() {
@@ -27,6 +28,14 @@ class TicketController {
 
 			console.log('Ticket creado:', ticket);
 			console.log('Productos fallidos:', failedProducts);
+
+			// Enviar correo electrónico con los detalles del ticket
+			try {
+				await sendTicketEmail(userEmail, ticket);
+				console.log('Correo de ticket enviado con éxito');
+			} catch (emailError) {
+				console.error('Error al enviar correo de ticket:', emailError);
+			}
 
 			response.status(201).json({
 				status: 'success',

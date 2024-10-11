@@ -2,6 +2,7 @@ import passport from 'passport';
 import { daoFactory } from '../factories/factory.js';
 import { config } from '../config/config.js';
 import { Cart } from '../models/cartModel.js';
+import { sendRegistrationEmail } from '../services/emailServices.js';
 
 class SessionController {
   constructor() {
@@ -63,6 +64,15 @@ class SessionController {
           role: user.role,
           cartId: cart._id.toString()
         };
+
+        // Enviar correo de registro
+        try {
+          await sendRegistrationEmail(user.email, user.firstName);
+          console.log('Correo de registro enviado con éxito');
+        } catch (emailError) {
+          console.error('Error al enviar correo de registro:', emailError);
+        }
+
         return response.status(201).json({ status: 'success', message: 'Usuario registrado con éxito', redirectUrl: '/profile' });
       });
     })(request, response, next);

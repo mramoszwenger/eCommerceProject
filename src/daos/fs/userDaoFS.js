@@ -128,6 +128,16 @@ class UserManager {
       throw new Error('Error al guardar el archivo de usuarios');
     }
   }
+
+  findOne = async (criteria) => {
+    const users = await this.readFile();
+    const user = users.find(user => 
+      Object.keys(criteria).every(key => user[key] === criteria[key])
+    );
+    if (!user) return null;
+    const { password: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
 }
 
 export default UserManager;

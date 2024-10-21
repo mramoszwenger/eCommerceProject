@@ -7,6 +7,7 @@ import MessageController from '../controllers/messageController.js';
 import TicketController from '../controllers/ticketController.js';  // Añade esta línea
 import apiRoutes from './api/index.js';
 import { isAuthenticated, isNotAuthenticated, getCurrentUser } from '../middlewares/auth.js';
+import SessionController from '../controllers/sessionController.js';
 
 const router = express.Router();
 
@@ -86,5 +87,9 @@ router.get('/chat', isAuthenticated, (request, response) => {
 });
 
 router.get('/tickets/:id', isAuthenticated, TicketController.renderTicketDetail);
+
+router.get('/forgot-password', isNotAuthenticated, (request, response) => {
+  response.render('forgotPassword', { title: 'Recuperar Contraseña' });
+});
 
 export default router;

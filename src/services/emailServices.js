@@ -72,3 +72,26 @@ export const sendTicketEmail = async (userEmail, ticket) => {
     throw error;
   }
 };
+
+export const sendPasswordResetEmail = async (userEmail, resetUrl) => {
+  const mailOptions = {
+    from: config.EMAIL_USER,
+    to: userEmail,
+    subject: 'errezeta SHOP - Restablecimiento de Contraseña',
+    html: `
+      <h1>Restablecimiento de Contraseña</h1>
+      <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente botón para continuar:</p>
+      <a href="${resetUrl}" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Restablecer Contraseña</a>
+      <p>Este enlace expirará en 1 hora.</p>
+      <p>Si no solicitaste este cambio, puedes ignorar este correo.</p>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('Correo de restablecimiento de contraseña enviado con éxito');
+  } catch (error) {
+    console.error('Error al enviar correo de restablecimiento de contraseña:', error);
+    throw error;
+  }
+};

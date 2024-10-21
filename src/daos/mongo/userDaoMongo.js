@@ -52,6 +52,13 @@ class UserDaoMongo {
     if (!deletedUser) throw new Error('Usuario no encontrado');
     return deletedUser;
   }
+
+  findOne = async (criteria) => {
+    const user = await User.findOne(criteria);
+    if (!user) return null;
+    const { password: _, ...userWithoutPassword } = user.toObject();
+    return userWithoutPassword;
+  }
 }
 
 export default UserDaoMongo;

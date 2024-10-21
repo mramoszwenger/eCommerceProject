@@ -20,4 +20,9 @@ router.get('/current', isAuthenticated, SessionController.getCurrentUser);
 router.get('/github', isNotAuthenticated, SessionController.githubAuth);
 router.get('/github/callback', isNotAuthenticated, SessionController.githubAuthCallback);
 
+// Rutas para recuperación de contraseña
+router.post('/forgot-password', isNotAuthenticated, SessionController.forgotPassword);
+router.get('/reset-password/:token', isNotAuthenticated, SessionController.renderResetPasswordForm);
+router.post('/reset-password/:token', isNotAuthenticated, SessionController.resetPassword);
+
 export default router;

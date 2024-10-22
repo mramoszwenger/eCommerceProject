@@ -68,6 +68,7 @@
 \src\routes\api\sessionRoutes.js
 \src\routes\api\ticketRoutes.js
 \src\routes\api\userRoutes.js
+\src\services\emailServices.js
 \src\services\websocket.js
 \src\utils\dirname.js
 \src\utils\formatters.js
@@ -76,11 +77,14 @@
 \views\cartDetail.hbs
 \views\chat.hbs
 \views\error.hbs
+\views\expiredToken.hbs
+\views\forgotPassword.hbs
 \views\home.hbs
 \views\login.hbs
 \views\productDetail.hbs
 \views\products.hbs
 \views\register.hbs
+\views\resetPassword.hbs
 \views\ticketDetail.hbs
 \views\updateProduct.hbs
 \views\userProfile.hbs

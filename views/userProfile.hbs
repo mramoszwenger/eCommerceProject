@@ -11,32 +11,36 @@
     <p><strong>Rol:</strong> {{user.role}}</p>
   </section>
 
-  <section class="user-actions card">
-    <h2>Acciones</h2>
-    <ul class="action-list">
-      <li><a href="/products/add" class="btn view-details-btn">Agregar Nuevo Producto</a></li>
-      <li><a href="/products" class="btn view-details-btn">Ver Todos los Productos</a></li>
-      {{#if (eq user.role 'admin')}}
-        <li><a href="/admin/dashboard" class="btn btn-admin">Panel de Administración</a></li>
-      {{/if}}
-    </ul>
-  </section>
-
-  <section class="user-products card">
-    <h2>Mis Productos</h2>
-    {{#if userProducts.length}}
-      <ul class="product-list">
-        {{#each userProducts}}
-          <li>
-            <a href="/products/{{this.id}}">{{this.title}}</a>
-            <a href="/products/edit/{{this.id}}" class="btn btn-small">Editar</a>
-          </li>
-        {{/each}}
+  {{#if (or (eq user.role 'admin') (eq user.role 'premium'))}}
+    <section class="user-actions card">
+      <h2>Acciones</h2>
+      <ul class="action-list">
+        <li><a href="/products/add" class="btn view-details-btn">Agregar Nuevo Producto</a></li>
+        <li><a href="/products" class="btn view-details-btn">Ver Todos los Productos</a></li>
+        {{#if (eq user.role 'admin')}}
+          <li><a href="/admin/dashboard" class="btn btn-admin">Panel de Administración</a></li>
+        {{/if}}
       </ul>
-    {{else}}
-      <p class="empty-message">Aún no has agregado ningún producto.</p>
-    {{/if}}
-  </section>
+    </section>
+  {{/if}}
+
+  {{#if (or (eq user.role 'admin') (eq user.role 'premium'))}}
+    <section class="user-products card">
+      <h2>Mis Productos</h2>
+      {{#if userProducts.length}}
+        <ul class="product-list">
+          {{#each userProducts}}
+            <li>
+              <a href="/products/{{this.id}}">{{this.title}}</a>
+              <a href="/products/edit/{{this.id}}" class="btn btn-small">Editar</a>
+            </li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <p class="empty-message">Aún no has agregado ningún producto.</p>
+      {{/if}}
+    </section>
+  {{/if}}
 
   <section class="user-purchases card">
     <h2>Mis Compras Finalizadas</h2>

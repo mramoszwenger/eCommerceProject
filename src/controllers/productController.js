@@ -3,6 +3,7 @@ import { config } from '../config/config.js';
 import path from 'path';
 import { getIO } from '../services/websocket.js';
 import ProductRepository from '../repositories/productRepository.js';
+import { User } from '../models/userModel.js';
 
 class ProductController {
   constructor() {
@@ -68,13 +69,25 @@ class ProductController {
 
   addProduct = async (request, response) => {
     try {
-      const productData = request.body;
       const userId = request.session.user.id;
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return response.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
+      }
+
+      // Verifica si el usuario tiene el rol 'premium' o 'admin'
+      if (user.role !== 'premium' && user.role !== 'admin') {
+        return response.status(403).json({ status: 'error', message: 'No tienes permiso para agregar productos' });
+      }
+
+      const productData = request.body;
       productData.user = userId;
 
       if (request.file) {
         productData.image = request.file.filename;
       }
+
       const newProduct = await this.productRepository.addProduct(productData);
       
       getIO().emit('productAdded', {
@@ -92,38 +105,56 @@ class ProductController {
   updateProduct = async (request, response) => {
     try {
       const { pid } = request.params;
-      const updateData = { ...request.body };
+      const userId = request.session.user.id;
+      const user = await User.findById(userId);
 
-      if (request.file) {
-        updateData.image = request.file.filename;
+      if (!user) {
+        return response.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
       }
 
-      if (updateData.price) {
-        updateData.price = Number(updateData.price);
-        if (isNaN(updateData.price) || updateData.price <= 0) {
-          return response.status(400).json({ error: 'El precio debe ser un número positivo' });
-        }
-      }
+      const product = await this.productRepository.getProductById(pid);
 
-      if (updateData.stock) {
-        updateData.stock = Number(updateData.stock);
-        if (isNaN(updateData.stock) || updateData.stock < 0 || !Number.isInteger(updateData.stock)) {
-          return response.status(400).json({ error: 'El stock debe ser un número entero no negativo' });
-        }
-      }
-
-      const updatedProduct = await this.productRepository.updateProduct(pid, updateData);
-      
-      if (!updatedProduct) {
+      if (!product) {
         return response.status(404).json({ error: 'Producto no encontrado' });
       }
 
-      getIO().emit('productUpdated', {
-        ...updatedProduct,
-        image: updatedProduct.image ? path.join(this.uploadsPath, updatedProduct.image) : this.defaultImagePath
-      });
+      // Verifica si el usuario es admin o si el producto pertenece al usuario
+      if (user.role === 'admin' || product.user.toString() === userId) {
+        const updateData = { ...request.body };
 
-      response.json(updatedProduct);
+        if (request.file) {
+          updateData.image = request.file.filename;
+        }
+
+        if (updateData.price) {
+          updateData.price = Number(updateData.price);
+          if (isNaN(updateData.price) || updateData.price <= 0) {
+            return response.status(400).json({ error: 'El precio debe ser un número positivo' });
+          }
+        }
+
+        if (updateData.stock) {
+          updateData.stock = Number(updateData.stock);
+          if (isNaN(updateData.stock) || updateData.stock < 0 || !Number.isInteger(updateData.stock)) {
+            return response.status(400).json({ error: 'El stock debe ser un número entero no negativo' });
+          }
+        }
+
+        const updatedProduct = await this.productRepository.updateProduct(pid, updateData);
+        
+        if (!updatedProduct) {
+          return response.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        getIO().emit('productUpdated', {
+          ...updatedProduct,
+          image: updatedProduct.image ? path.join(this.uploadsPath, updatedProduct.image) : this.defaultImagePath
+        });
+
+        response.json(updatedProduct);
+      } else {
+        return response.status(403).json({ status: 'error', message: 'No tienes permiso para modificar este producto' });
+      }
     } catch (error) {
       console.error('Error al actualizar el producto:', error);
       response.status(500).json({ error: 'Error al actualizar el producto', details: error.message });
@@ -133,14 +164,27 @@ class ProductController {
   deleteProduct = async (request, response) => {
     try {
       const { pid } = request.params;
-      const deletedProduct = await this.productRepository.deleteProduct(pid);
-      if (!deletedProduct) {
+      const userId = request.session.user.id;
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return response.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
+      }
+
+      const product = await this.productRepository.getProductById(pid);
+
+      if (!product) {
         return response.status(404).json({ error: 'Producto no encontrado' });
       }
 
-      getIO().emit('productDeleted', pid);
-
-      response.json({ message: 'Producto eliminado con éxito' });
+      // Verifica si el usuario es admin o si el producto pertenece al usuario
+      if (user.role === 'admin' || product.user.toString() === userId) {
+        const deletedProduct = await this.productRepository.deleteProduct(pid);
+        getIO().emit('productDeleted', pid);
+        return response.json({ message: 'Producto eliminado con éxito' });
+      } else {
+        return response.status(403).json({ status: 'error', message: 'No tienes permiso para eliminar este producto' });
+      }
     } catch (error) {
       console.error('Error al eliminar el producto:', error);
       response.status(500).json({ error: 'Error al eliminar el producto' });

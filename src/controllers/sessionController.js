@@ -210,7 +210,7 @@ class SessionController {
       user.password = password;
       user.resetPasswordToken = undefined;
       user.resetPasswordExpires = undefined;
-      await this.userManager.updateOne({ _id: user._id }, user);
+      await this.userManager.updateUser({ _id: user._id }, user);
 
       response.status(200).json({ status: 'success', message: 'Contraseña restablecida con éxito' });
     } catch (error) {

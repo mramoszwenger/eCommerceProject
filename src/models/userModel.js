@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   age: { type: Number, min: 0, max: 120 },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' }
+  role: { type: String, enum: ['user', 'admin', 'premium'], default: 'user' }
 }, { timestamps: true });
 
 userSchema.methods.toJSON = function() {

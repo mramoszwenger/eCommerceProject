@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { daoFactory } from '../factories/factory.js';
 import CartRepository from '../repositories/cartRepository.js';
+import { User } from '../models/userModel.js';
 
 class CartController {
   constructor() {
@@ -41,10 +42,26 @@ class CartController {
     try {
       const { cid, pid } = request.params;
       const { quantity = 1 } = request.body;
+      const userId = request.session.user.id;
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return response.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
+      }
+
       console.log(`Intentando agregar producto ${pid} al carrito ${cid} con cantidad ${quantity}`);
-      const cart = await this.cartRepository.addProductToCart(cid, pid, parseInt(quantity, 10));
-      console.log('Carrito actualizado:', JSON.stringify(cart, null, 2));
-      response.json(cart);
+
+      // Verifica si el producto ya pertenece al usuario
+      const cart = await this.cartRepository.getCart(cid);
+      const productInCart = cart.products.find(product => product.id === pid);
+
+      if (user.role === 'premium' && productInCart) {
+        return response.status(403).json({ status: 'error', message: 'No puedes agregar un producto que ya te pertenece' });
+      }
+
+      const updatedCart = await this.cartRepository.addProductToCart(cid, pid, parseInt(quantity, 10));
+      console.log('Carrito actualizado:', JSON.stringify(updatedCart, null, 2));
+      response.json(updatedCart);
     } catch (error) {
       console.error('Error al agregar producto al carrito:', error);
       if (error.message === 'Carrito no encontrado') {

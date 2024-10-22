@@ -28,4 +28,7 @@ router.get('/profile', isAuthenticated, userController.renderUserProfile);
 // Cierre de sesión
 router.post('/logout', userController.logoutUser);
 
+// Cambiar rol de usuario a premium o viceversa
+router.put('/premium/:uid', isAuthenticated, userController.toggleUserRole);
+
 export default router;

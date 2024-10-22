@@ -92,4 +92,8 @@ router.get('/forgot-password', isNotAuthenticated, (request, response) => {
   response.render('forgotPassword', { title: 'Recuperar Contraseña' });
 });
 
+router.get('/reset-password/:token', isNotAuthenticated, (request, response) => {
+  response.render('resetPassword', { title: 'Reestablecer Contraseña' });
+});
+
 export default router;

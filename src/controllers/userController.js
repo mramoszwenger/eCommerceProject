@@ -67,6 +67,26 @@ class UserController {
     }
   }
 
+  toggleUserRole = async (request, response) => {
+    const { uid } = request.params;
+
+    try {
+      const user = await this.userRepository.getUserById(uid);
+      if (!user) {
+        return response.status(404).json({ status: 'error', message: 'Usuario no encontrado' });
+      }
+
+      // Cambiar el rol entre 'user' y 'premium'
+      user.role = user.role === 'premium' ? 'user' : 'premium';
+      await this.userRepository.updateUser(uid, { role: user.role });
+
+      response.json({ status: 'success', message: 'Rol de usuario actualizado', user });
+    } catch (error) {
+      console.error('Error al cambiar el rol del usuario:', error);
+      response.status(500).json({ status: 'error', message: 'Error al actualizar el rol del usuario' });
+    }
+  }
+
   deleteUser = async (request, response) => {
     const uid = request.params.uid;
     try {
